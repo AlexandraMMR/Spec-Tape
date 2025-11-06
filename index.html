@@ -1,0 +1,4159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPEC-TAPE | Kiroween Mixtape Analyzer</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tone.js for Web Audio API -->
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'spec-dark': '#111827',
+                        'neon-purple': '#BF40BF',
+                        'radioactive-green': '#40BF40',
+                        'shock-orange': '#FF8C00',
+                        'terminal-green': '#00FF00'
+                    },
+                    fontFamily: {
+                        'mono': ['Courier New', 'monospace'],
+                        'pixel': ['Courier New', 'Monaco', 'Lucida Console', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom 90s Aesthetic Styles */
+        body {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* 3D Button Effects */
+        .btn-3d {
+            box-shadow: 
+                0 4px 0 #374151,
+                0 8px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+        
+        .btn-3d:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0 #374151,
+                0 12px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 0 0 #374151,
+                0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Neon Glow Effects */
+        .neon-glow {
+            text-shadow: 
+                0 0 5px currentColor,
+                0 0 10px currentColor,
+                0 0 15px currentColor;
+        }
+        
+        /* CRT Monitor Effect */
+        .crt-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .crt-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 255, 0, 0.03) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Tape Spool Animation */
+        @keyframes spin-spool {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes spin-spool-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .tape-spool {
+            animation: spin-spool 3s linear infinite;
+            animation-play-state: paused;
+            transition: all 0.3s ease;
+        }
+        
+        .tape-spool.playing {
+            animation-play-state: running;
+        }
+        
+        .tape-spool.fast-forward {
+            animation: spin-spool 0.5s linear infinite;
+            animation-play-state: running;
+        }
+        
+        .tape-spool.rewind {
+            animation: spin-spool 0.5s linear infinite reverse;
+            animation-play-state: running;
+        }
+        
+        /* Tape spool inner details */
+        .spool-inner {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .spool-inner::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #4b5563, transparent);
+            transform: translate(-50%, -50%);
+        }
+        
+        .spool-inner::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 80%;
+            background: linear-gradient(0deg, transparent, #4b5563, transparent);
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Cassette tape visual enhancement */
+        .cassette-tape {
+            background: linear-gradient(90deg, 
+                #1f2937 0%, 
+                #374151 20%, 
+                #4b5563 50%, 
+                #374151 80%, 
+                #1f2937 100%);
+            position: relative;
+        }
+        
+        .cassette-tape::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6b7280, transparent);
+        }
+        
+        .cassette-tape::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6b7280, transparent);
+        }
+        
+        /* Static Overlay for Easter Egg */
+        .static-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle, transparent 20%, rgba(0, 255, 0, 0.1) 20.5%, rgba(0, 255, 0, 0.1) 80%, transparent 80.5%),
+                linear-gradient(90deg, transparent 50%, rgba(0, 255, 0, 0.05) 50%);
+            background-size: 20px 20px, 3px 3px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .static-overlay.active {
+            opacity: 1;
+        }
+        
+        /* Terminal-style text */
+        .terminal-text {
+            font-family: 'Courier New', monospace;
+            color: #00FF00;
+            background: #000;
+            padding: 1rem;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        /* Boombox specific styling */
+        .boombox-container {
+            background: linear-gradient(145deg, #374151, #1f2937);
+            border: 4px solid #4b5563;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+                0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .cassette-display {
+            background: linear-gradient(145deg, #111827, #1f2937);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.5),
+                inset 0 -1px 2px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Control button active states */
+        .control-button.active {
+            background: #BF40BF !important;
+            color: white !important;
+            box-shadow: 
+                0 2px 0 #9333ea,
+                0 4px 8px rgba(0, 0, 0, 0.3);
+            transform: translateY(2px);
+        }
+        
+        /* Specific button active states */
+        #playBtn.active {
+            background: #22c55e !important;
+            box-shadow: 
+                0 2px 0 #16a34a,
+                0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        #pauseBtn.active {
+            background: #f59e0b !important;
+            box-shadow: 
+                0 2px 0 #d97706,
+                0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        #stopBtn.active {
+            background: #dc2626 !important;
+            box-shadow: 
+                0 2px 0 #b91c1c,
+                0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        #fastForwardBtn.active, #rewindBtn.active {
+            background: #FF8C00 !important;
+            color: black !important;
+            box-shadow: 
+                0 2px 0 #ea580c,
+                0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .side-selector.active {
+            background: #BF40BF !important;
+            color: white !important;
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0 #9333ea,
+                0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Hover effects for cassette label */
+        #cassette-label:hover {
+            background: #4b5563 !important;
+        }
+        
+        /* Track input styling */
+        .track-input {
+            background: #000;
+            border: 2px solid #374151;
+            color: #40BF40;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .track-input:focus {
+            border-color: #BF40BF;
+            box-shadow: 0 0 10px rgba(191, 64, 191, 0.3);
+            outline: none;
+        }
+        
+        .track-input::placeholder {
+            color: #6b7280;
+        }
+        
+        /* Track container styling */
+        .track-container {
+            background: linear-gradient(145deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            transition: all 0.3s ease;
+        }
+        
+        .track-container:hover {
+            border-color: #4b5563;
+            background: linear-gradient(145deg, #374151, #1f2937);
+        }
+        
+        /* Track number styling */
+        .track-number {
+            background: linear-gradient(145deg, #374151, #1f2937);
+            color: #BF40BF;
+            border: 1px solid #4b5563;
+            font-weight: bold;
+            text-shadow: 0 0 5px currentColor;
+        }
+        
+        /* Remove track button */
+        .remove-track {
+            background: #dc2626;
+            color: white;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .remove-track:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        /* Volume slider styling */
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #374151;
+            outline: none;
+            border-radius: 4px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #BF40BF;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(191, 64, 191, 0.5);
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #BF40BF;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(191, 64, 191, 0.5);
+        }
+        
+        .volume-slider:hover::-webkit-slider-thumb {
+            background: #d946ef;
+            box-shadow: 0 0 15px rgba(191, 64, 191, 0.8);
+        }
+        
+        /* Track selector styling */
+        .track-select-btn {
+            background: linear-gradient(145deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            color: #9ca3af;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .track-select-btn:hover {
+            border-color: #BF40BF;
+            color: #BF40BF;
+            background: linear-gradient(145deg, #374151, #1f2937);
+        }
+        
+        .track-select-btn.current-track {
+            background: linear-gradient(145deg, #BF40BF, #9333ea);
+            color: white;
+            border-color: #d946ef;
+            box-shadow: 0 0 10px rgba(191, 64, 191, 0.3);
+        }
+        
+        .track-select-btn.playing {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 0 10px rgba(191, 64, 191, 0.3);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(191, 64, 191, 0.8);
+            }
+        }
+        
+        /* EVP Analysis styling */
+        #evpTranscript {
+            background: linear-gradient(145deg, #000, #111827);
+            border: 2px solid #374151;
+            color: #40BF40;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+        }
+        
+        #evpTranscript:focus {
+            border-color: #FF8C00;
+            box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
+        }
+        
+        #evpTranscript::placeholder {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .evp-sample {
+            transition: all 0.3s ease;
+        }
+        
+        .evp-sample:hover {
+            background: #4b5563 !important;
+            color: #FF8C00 !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Analysis progress animation */
+        @keyframes analysis-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .analyzing {
+            animation: analysis-pulse 1.5s ease-in-out infinite;
+        }
+        
+        /* Loading dots animation */
+        @keyframes loading-dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .loading-dots::after {
+            content: '.';
+            animation: loading-dots 1.5s infinite;
+        }
+        
+        /* Screen shake animation for Konami code */
+        @keyframes screen-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-2px, -1px) rotate(-0.5deg); }
+            20% { transform: translate(-1px, 0px) rotate(0.5deg); }
+            30% { transform: translate(2px, 1px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(0.5deg); }
+            50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            60% { transform: translate(-2px, 0px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-0.5deg); }
+            80% { transform: translate(-1px, -1px) rotate(0.5deg); }
+            90% { transform: translate(1px, 0px) rotate(0deg); }
+        }
+    </style>
+</head>
+<body class="bg-spec-dark text-white min-h-screen">
+    <!-- Static Overlay for Konami Code Easter Egg -->
+    <div id="staticOverlay" class="static-overlay"></div>
+    
+    <!-- Main Application Container -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-6xl font-bold text-neon-purple neon-glow mb-2 font-pixel">
+                SPEC-TAPE
+            </h1>
+            <p class="text-radioactive-green text-lg font-mono">
+                KIROWEEN MIXTAPE ANALYZER v1.0
+            </p>
+            <div class="text-shock-orange text-sm font-mono mt-2">
+                [PARANORMAL AUDIO INVESTIGATION SYSTEM]
+            </div>
+        </header>
+        
+        <!-- Main Boombox Container -->
+        <main class="boombox-container bg-gray-800 rounded-lg p-8 border-4 border-gray-600 crt-effect shadow-2xl">
+            
+            <!-- Cassette Display Section -->
+            <div class="cassette-display bg-gray-900 rounded-lg p-6 mb-6 border-2 border-gray-500">
+                <div class="flex justify-between items-center mb-4">
+                    <!-- Left Tape Spool -->
+                    <div id="leftSpool" class="tape-spool w-16 h-16 bg-gray-700 rounded-full border-4 border-gray-500 flex items-center justify-center shadow-lg">
+                        <div class="w-10 h-10 bg-gray-600 rounded-full border-2 border-gray-400 shadow-inner">
+                            <div class="spool-inner w-full h-full bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center">
+                                <div class="w-3 h-3 bg-gray-800 rounded-full border border-gray-600">
+                                    <div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cassette Tape Center -->
+                    <div class="flex-1 mx-4 cassette-tape bg-gray-800 rounded p-4 border border-gray-600 shadow-inner">
+                        <div class="text-center">
+                            <div class="text-radioactive-green font-mono text-sm mb-2 neon-glow">
+                                SPEC-TAPE LOADED
+                            </div>
+                            <div class="bg-black rounded p-2 mb-2 border border-gray-700 shadow-inner">
+                                <div id="tapeTitle" class="text-shock-orange font-mono text-xs">
+                                    [UNTITLED MIXTAPE]
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-xs font-mono text-gray-400">
+                                <span id="currentSide" class="text-neon-purple">SIDE A</span>
+                                <span id="trackCounter">00/00</span>
+                            </div>
+                            
+                            <!-- Tape Progress Indicator -->
+                            <div class="mt-2 bg-black rounded p-1 border border-gray-700">
+                                <div class="flex justify-between items-center">
+                                    <div class="w-2 h-1 bg-radioactive-green rounded"></div>
+                                    <div id="tapeProgress" class="flex-1 mx-2 h-1 bg-gray-700 rounded overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-radioactive-green to-neon-purple w-0 transition-all duration-1000"></div>
+                                    </div>
+                                    <div class="w-2 h-1 bg-radioactive-green rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Tape Spool -->
+                    <div id="rightSpool" class="tape-spool w-16 h-16 bg-gray-700 rounded-full border-4 border-gray-500 flex items-center justify-center shadow-lg">
+                        <div class="w-10 h-10 bg-gray-600 rounded-full border-2 border-gray-400 shadow-inner">
+                            <div class="spool-inner w-full h-full bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center">
+                                <div class="w-3 h-3 bg-gray-800 rounded-full border border-gray-600">
+                                    <div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cassette Label Area (Hidden Click Target) -->
+                <div id="cassette-label" class="bg-gray-700 rounded p-2 border border-gray-500 cursor-pointer hover:bg-gray-650 transition-colors">
+                    <div class="text-center text-xs font-mono text-gray-300">
+                        KIROWEEN PARANORMAL INVESTIGATION
+                    </div>
+                    <div class="text-center text-xs font-mono text-gray-400 mt-1">
+                        SPECTRAL ANALYSIS DIVISION
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Control Panel -->
+            <div class="bg-gray-700 rounded-lg p-6 border-2 border-gray-500">
+                <div class="grid grid-cols-2 gap-6">
+                    
+                    <!-- Left Control Section -->
+                    <div>
+                        <h3 class="text-radioactive-green font-mono text-sm mb-4 neon-glow">
+                            PLAYBACK CONTROLS
+                        </h3>
+                        
+                        <!-- Transport Controls -->
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button id="rewindBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
+                                ⏪ REW
+                            </button>
+                            <button id="fastForwardBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
+                                FF ⏩
+                            </button>
+                            <button id="playBtn" class="control-button btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-green-400 col-span-2">
+                                ▶ PLAY
+                            </button>
+                        </div>
+                        
+                        <div class="flex space-x-2 mb-4">
+                            <button id="pauseBtn" class="control-button btn-3d bg-shock-orange text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-orange-400 flex-1">
+                                ⏸ PAUSE
+                            </button>
+                            <button id="stopBtn" class="control-button btn-3d bg-red-500 text-white px-4 py-2 rounded font-mono text-sm font-bold hover:bg-red-400 flex-1">
+                                ⏹ STOP
+                            </button>
+                        </div>
+                        
+                        <!-- Side Selector -->
+                        <div class="mb-4">
+                            <label class="text-neon-purple font-mono text-xs mb-2 block">TAPE SIDE:</label>
+                            <div class="flex space-x-2">
+                                <button id="sideABtn" class="side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active">
+                                    SIDE A
+                                </button>
+                                <button id="sideBBtn" class="side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500">
+                                    SIDE B
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Control Section -->
+                    <div>
+                        <h3 class="text-shock-orange font-mono text-sm mb-4 neon-glow">
+                            SYSTEM STATUS
+                        </h3>
+                        
+                        <!-- Status Indicators -->
+                        <div class="space-y-2 text-xs font-mono">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">POWER:</span>
+                                <span class="text-radioactive-green neon-glow">ONLINE</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">SPECTRAL:</span>
+                                <span class="text-radioactive-green neon-glow">READY</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">ANALYSIS:</span>
+                                <span id="analysisStatus" class="text-gray-400">STANDBY</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">AUDIO:</span>
+                                <span id="audioStatus" class="text-gray-400">INIT</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Volume Control -->
+                        <div class="mt-4">
+                            <label class="text-neon-purple font-mono text-xs mb-2 block">VOLUME:</label>
+                            <div class="bg-black rounded p-2">
+                                <input 
+                                    type="range" 
+                                    id="volumeSlider" 
+                                    min="0" 
+                                    max="100" 
+                                    value="70" 
+                                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer volume-slider"
+                                >
+                                <div class="flex justify-between text-xs text-gray-400 font-mono mt-1">
+                                    <span>0</span>
+                                    <span id="volumeDisplay">70%</span>
+                                    <span>100</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Track Selection -->
+                        <div class="mt-4">
+                            <label class="text-shock-orange font-mono text-xs mb-2 block">TRACK SELECT:</label>
+                            <div class="bg-black rounded p-2 max-h-32 overflow-y-auto">
+                                <div id="trackSelector" class="space-y-1">
+                                    <!-- Track selection buttons will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Mixtape Editor Section -->
+        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl">
+            <header class="text-center mb-6">
+                <h2 class="text-3xl font-bold text-neon-purple neon-glow font-pixel mb-2">
+                    MIXTAPE EDITOR
+                </h2>
+                <p class="text-radioactive-green text-sm font-mono">
+                    [CUSTOMIZE YOUR SPECTRAL COMPILATION]
+                </p>
+            </header>
+            
+            <!-- Mixtape Title Input -->
+            <div class="mb-6">
+                <label for="mixtapeTitle" class="block text-shock-orange font-mono text-sm mb-2 neon-glow">
+                    TAPE TITLE:
+                </label>
+                <input 
+                    type="text" 
+                    id="mixtapeTitle" 
+                    class="w-full bg-black border-2 border-gray-600 rounded p-3 text-radioactive-green font-mono text-lg focus:border-neon-purple focus:outline-none focus:ring-2 focus:ring-neon-purple focus:ring-opacity-50 transition-all"
+                    placeholder="Enter your mixtape title..."
+                    maxlength="50"
+                >
+                <div class="text-right text-xs text-gray-400 font-mono mt-1">
+                    <span id="titleCharCount">0</span>/50 characters
+                </div>
+            </div>
+            
+            <!-- Side A and B Editor -->
+            <div class="grid md:grid-cols-2 gap-6">
+                
+                <!-- Side A -->
+                <div class="bg-gray-900 rounded-lg p-4 border-2 border-gray-500">
+                    <h3 class="text-radioactive-green font-mono text-lg mb-4 neon-glow text-center">
+                        ◄ SIDE A ►
+                    </h3>
+                    
+                    <div id="sideAEditor" class="space-y-2">
+                        <!-- Track inputs will be dynamically generated -->
+                    </div>
+                    
+                    <button id="addTrackA" class="w-full mt-3 btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-green-400">
+                        + ADD TRACK TO SIDE A
+                    </button>
+                    
+                    <div class="text-center text-xs text-gray-400 font-mono mt-2 space-y-1">
+                        <div><span id="sideACount">0</span>/10 tracks</div>
+                        <div>Duration: <span id="sideADuration">0:00</span></div>
+                    </div>
+                </div>
+                
+                <!-- Side B -->
+                <div class="bg-gray-900 rounded-lg p-4 border-2 border-gray-500">
+                    <h3 class="text-neon-purple font-mono text-lg mb-4 neon-glow text-center">
+                        ◄ SIDE B ►
+                    </h3>
+                    
+                    <div id="sideBEditor" class="space-y-2">
+                        <!-- Track inputs will be dynamically generated -->
+                    </div>
+                    
+                    <button id="addTrackB" class="w-full mt-3 btn-3d bg-neon-purple text-white px-4 py-2 rounded font-mono text-sm font-bold hover:bg-purple-400">
+                        + ADD TRACK TO SIDE B
+                    </button>
+                    
+                    <div class="text-center text-xs text-gray-400 font-mono mt-2 space-y-1">
+                        <div><span id="sideBCount">0</span>/10 tracks</div>
+                        <div>Duration: <span id="sideBDuration">0:00</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mixtape Actions -->
+            <div class="flex justify-center space-x-4 mt-6">
+                <button id="clearMixtape" class="btn-3d bg-red-500 text-white px-6 py-2 rounded font-mono text-sm font-bold hover:bg-red-400">
+                    CLEAR ALL
+                </button>
+                <button id="randomizeTracks" class="btn-3d bg-shock-orange text-black px-6 py-2 rounded font-mono text-sm font-bold hover:bg-orange-400">
+                    RANDOMIZE
+                </button>
+            </div>
+            
+            <!-- Mixtape Sharing Section -->
+            <div class="mt-6 bg-gray-900 rounded-lg p-4 border border-gray-600">
+                <h4 class="text-shock-orange font-mono text-sm mb-3 text-center neon-glow">
+                    SHARE YOUR SPEC-TAPE
+                </h4>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <button id="shareTracklistBtn" class="btn-3d bg-neon-purple text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-purple-400">
+                        SHARE TRACKLIST
+                    </button>
+                    <button id="shareMixtapeDataBtn" class="btn-3d bg-radioactive-green text-black px-3 py-2 rounded font-mono text-xs font-bold hover:bg-green-400">
+                        EXPORT DATA
+                    </button>
+                    <button id="generateShareLinkBtn" class="btn-3d bg-shock-orange text-black px-3 py-2 rounded font-mono text-xs font-bold hover:bg-orange-400">
+                        GENERATE LINK
+                    </button>
+                    <button id="importDataBtn" class="btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
+                        IMPORT DATA
+                    </button>
+                </div>
+                
+                <!-- Import Modal -->
+                <div id="importModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+                    <div class="bg-gray-800 rounded-lg p-6 border-2 border-gray-600 max-w-md w-full mx-4">
+                        <h3 class="text-radioactive-green font-mono text-lg mb-4 text-center neon-glow">
+                            IMPORT MIXTAPE DATA
+                        </h3>
+                        <textarea 
+                            id="importDataInput" 
+                            class="w-full bg-black border-2 border-gray-600 rounded p-3 text-radioactive-green font-mono text-sm focus:border-neon-purple focus:outline-none resize-none"
+                            placeholder="Paste exported mixtape data here..."
+                            rows="8"
+                        ></textarea>
+                        <div class="flex justify-center space-x-3 mt-4">
+                            <button id="confirmImportBtn" class="btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-xs font-bold hover:bg-green-400">
+                                IMPORT
+                            </button>
+                            <button id="cancelImportBtn" class="btn-3d bg-red-500 text-white px-4 py-2 rounded font-mono text-xs font-bold hover:bg-red-400">
+                                CANCEL
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Share Status -->
+                <div id="shareStatus" class="mt-3 text-center hidden">
+                    <div class="bg-black rounded p-2 border border-radioactive-green">
+                        <div class="text-radioactive-green font-mono text-xs neon-glow">
+                            MIXTAPE DATA COPIED TO CLIPBOARD
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Keyboard Shortcuts Help -->
+            <div class="mt-6 bg-gray-900 rounded-lg p-4 border border-gray-600">
+                <h4 class="text-radioactive-green font-mono text-sm mb-3 text-center neon-glow">
+                    KEYBOARD SHORTCUTS
+                </h4>
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono text-gray-400">
+                    <div class="flex justify-between">
+                        <span>SPACE:</span>
+                        <span class="text-neon-purple">Play/Pause</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>S:</span>
+                        <span class="text-red-400">Stop</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>← →:</span>
+                        <span class="text-shock-orange">Prev/Next Track</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>A / B:</span>
+                        <span class="text-radioactive-green">Switch Sides</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- EVP Analysis Section -->
+        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl">
+            <header class="text-center mb-6">
+                <h2 class="text-3xl font-bold text-shock-orange neon-glow font-pixel mb-2">
+                    SPECTRAL INTERLUDE
+                </h2>
+                <p class="text-radioactive-green text-sm font-mono">
+                    [EVP ANALYSIS & PARANORMAL LINGUISTICS]
+                </p>
+            </header>
+            
+            <!-- EVP Input Section -->
+            <div class="bg-gray-900 rounded-lg p-6 border-2 border-gray-500 mb-6">
+                <h3 class="text-neon-purple font-mono text-lg mb-4 neon-glow">
+                    ◄ AUDIO TRANSCRIPT INPUT ►
+                </h3>
+                
+                <div class="mb-4">
+                    <label for="evpTranscript" class="block text-shock-orange font-mono text-sm mb-2">
+                        SUSPECTED EVP TRANSCRIPT:
+                    </label>
+                    <textarea 
+                        id="evpTranscript" 
+                        class="w-full bg-black border-2 border-gray-600 rounded p-4 text-radioactive-green font-mono text-sm focus:border-neon-purple focus:outline-none focus:ring-2 focus:ring-neon-purple focus:ring-opacity-50 transition-all resize-none"
+                        placeholder="Enter what you heard in the paranormal audio recording... (e.g., 'It sounded like a child laughing backwards')"
+                        rows="4"
+                        maxlength="500"
+                    ></textarea>
+                    <div class="flex justify-between text-xs text-gray-400 font-mono mt-2">
+                        <span>Describe the spectral phenomena you detected</span>
+                        <span><span id="evpCharCount">0</span>/500 characters</span>
+                    </div>
+                </div>
+                
+                <!-- Analysis Controls -->
+                <div class="flex justify-center space-x-4">
+                    <button 
+                        id="analyzeBtn" 
+                        class="btn-3d bg-shock-orange text-black px-8 py-3 rounded font-mono text-sm font-bold hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        ANALYZE SPECTRAL DATA
+                    </button>
+                    <button 
+                        id="clearEvpBtn" 
+                        class="btn-3d bg-gray-600 text-white px-6 py-3 rounded font-mono text-sm font-bold hover:bg-gray-500"
+                    >
+                        CLEAR
+                    </button>
+                </div>
+                
+                <!-- Analysis Status -->
+                <div id="analysisStatusContainer" class="mt-4 text-center hidden">
+                    <div class="bg-black rounded p-3 border border-gray-600">
+                        <div id="analysisStatus" class="text-radioactive-green font-mono text-sm">
+                            INITIALIZING SPECTRAL ANALYSIS...
+                        </div>
+                        <div class="mt-2">
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div id="analysisProgress" class="bg-neon-purple h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sample EVP Suggestions -->
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-600 mb-6">
+                <h4 class="text-radioactive-green font-mono text-sm mb-3 neon-glow">
+                    SAMPLE EVP PHENOMENA:
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="I heard whispers saying 'help me' in reverse">
+                        "Help me" (reversed speech)
+                    </button>
+                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="A child's laughter echoing from an empty room">
+                        Child's laughter (empty room)
+                    </button>
+                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="Static interference with the word 'leave' repeated three times">
+                        "Leave" x3 (static interference)
+                    </button>
+                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="Footsteps followed by a door slamming, but no one was there">
+                        Phantom footsteps + door slam
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Analysis Report Display -->
+            <div id="analysisReportSection" class="bg-gray-900 rounded-lg p-6 border-2 border-gray-500 hidden">
+                <h3 class="text-radioactive-green font-mono text-lg mb-4 neon-glow text-center">
+                    ◄ EVP ANALYSIS REPORT ►
+                </h3>
+                
+                <div class="terminal-text mb-4" id="analysisReportContent">
+                    <!-- Report content will be populated here -->
+                </div>
+                
+                <div class="flex justify-center space-x-4">
+                    <button 
+                        id="transmitReportBtn" 
+                        class="btn-3d bg-radioactive-green text-black px-8 py-3 rounded font-mono text-sm font-bold hover:bg-green-400"
+                    >
+                        [ TRANSMIT REPORT ]
+                    </button>
+                    <button 
+                        id="newAnalysisBtn" 
+                        class="btn-3d bg-neon-purple text-white px-6 py-3 rounded font-mono text-sm font-bold hover:bg-purple-400"
+                    >
+                        NEW ANALYSIS
+                    </button>
+                </div>
+                
+                <!-- Transmission Status -->
+                <div id="transmissionStatus" class="mt-4 text-center hidden">
+                    <div class="bg-black rounded p-2 border border-radioactive-green">
+                        <div class="text-radioactive-green font-mono text-sm neon-glow">
+                            REPORT TRANSMITTED TO CLIPBOARD
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Application State and Logic -->
+    <script>
+        // Global Application State
+        const appState = {
+            // Mixtape data
+            mixtape: {
+                title: "",
+                sideA: [],
+                sideB: []
+            },
+            
+            // Player state
+            player: {
+                isPlaying: false,
+                currentSide: "A",
+                currentTrack: 0,
+                volume: 0.7
+            },
+            
+            // EVP analysis
+            evp: {
+                transcript: "",
+                isAnalyzing: false,
+                report: null,
+                error: null
+            },
+            
+            // Easter eggs
+            easterEggs: {
+                konamiProgress: 0,
+                hiddenClicks: 0,
+                lastClickTime: 0
+            }
+        };
+        
+        // Konami Code Sequence
+        const konamiSequence = [
+            'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+            'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+            'KeyB', 'KeyA', 'Enter'
+        ];
+        
+        // Initialize Web Audio Context
+        let audioContext;
+        let audioInitialized = false;
+        
+        // Initialize application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SPEC-TAPE System Initialized');
+            console.log('Paranormal Audio Investigation Ready');
+            
+            // Initialize audio context on first user interaction
+            document.addEventListener('click', initializeAudio, { once: true });
+            document.addEventListener('keydown', initializeAudio, { once: true });
+            
+            // Initialize UI components
+            initializeControls();
+            initializeMixtapeEditor();
+            
+            // Load mixtape data from URL, session, or create sample tracks
+            if (!loadMixtapeFromURL()) {
+                if (!loadMixtapeFromSession()) {
+                    createSampleMixtape();
+                }
+            }
+            setupAutoSave();
+            
+            updateDisplay();
+        });
+        
+        // Initialize control button event listeners
+        function initializeControls() {
+            // Transport controls
+            document.getElementById('playBtn').addEventListener('click', playSpecTape);
+            document.getElementById('pauseBtn').addEventListener('click', pauseSpecTape);
+            document.getElementById('stopBtn').addEventListener('click', stopSpecTape);
+            document.getElementById('rewindBtn').addEventListener('click', rewindSpecTape);
+            document.getElementById('fastForwardBtn').addEventListener('click', fastForwardSpecTape);
+            
+            // Side selector controls
+            document.getElementById('sideABtn').addEventListener('click', () => switchSide('A'));
+            document.getElementById('sideBBtn').addEventListener('click', () => switchSide('B'));
+            
+            // Hidden easter egg areas
+            document.getElementById('cassette-label').addEventListener('click', handleHiddenClick);
+            
+            // Additional hidden areas
+            document.getElementById('leftSpool').addEventListener('click', handleSpoolClick);
+            document.getElementById('rightSpool').addEventListener('click', handleSpoolClick);
+            
+            // Hidden area in the header
+            document.querySelector('header h1').addEventListener('click', handleTitleClick);
+            
+            // Volume control
+            document.getElementById('volumeSlider').addEventListener('input', handleVolumeChange);
+            
+            // Konami code detection
+            document.addEventListener('keydown', handleKonamiInput);
+            
+            // EVP Analysis controls
+            initializeEVPAnalysis();
+            
+            // Sharing controls
+            initializeSharingSystem();
+            
+            logSpectral('Control systems initialized');
+        }
+        
+        // Playback control functions
+        function playSpecTape() {
+            appState.player.isPlaying = true;
+            
+            // Update button states
+            document.getElementById('playBtn').classList.add('active');
+            document.getElementById('pauseBtn').classList.remove('active');
+            document.getElementById('stopBtn').classList.remove('active');
+            document.getElementById('fastForwardBtn').classList.remove('active');
+            document.getElementById('rewindBtn').classList.remove('active');
+            
+            // Start tape spool animation with proper direction
+            startTapeSpoolAnimation();
+            
+            // Update status
+            document.getElementById('audioStatus').textContent = 'PLAYING';
+            document.getElementById('audioStatus').className = 'text-radioactive-green neon-glow';
+            
+            // Start actual audio playback
+            playCurrentTrack();
+            
+            // Start progress simulation
+            startProgressSimulation();
+            
+            // Start audio level visualization
+            startAudioVisualization();
+            
+            logSpectral('Playback started');
+        }
+        
+        function pauseSpecTape() {
+            appState.player.isPlaying = false;
+            
+            // Update button states
+            document.getElementById('playBtn').classList.remove('active');
+            document.getElementById('pauseBtn').classList.add('active');
+            document.getElementById('stopBtn').classList.remove('active');
+            document.getElementById('fastForwardBtn').classList.remove('active');
+            document.getElementById('rewindBtn').classList.remove('active');
+            
+            // Pause actual audio
+            stopCurrentTrack();
+            
+            // Pause tape spool animation
+            pauseTapeSpoolAnimation();
+            
+            // Update status
+            document.getElementById('audioStatus').textContent = 'PAUSED';
+            document.getElementById('audioStatus').className = 'text-shock-orange';
+            
+            // Stop progress simulation
+            stopProgressSimulation();
+            
+            // Stop audio visualization
+            stopAudioVisualization();
+            
+            logSpectral('Playback paused');
+        }
+        
+        function stopSpecTape() {
+            appState.player.isPlaying = false;
+            appState.player.currentTrack = 0;
+            
+            // Update button states
+            document.getElementById('playBtn').classList.remove('active');
+            document.getElementById('pauseBtn').classList.remove('active');
+            document.getElementById('stopBtn').classList.add('active');
+            document.getElementById('fastForwardBtn').classList.remove('active');
+            document.getElementById('rewindBtn').classList.remove('active');
+            
+            // Stop actual audio
+            stopCurrentTrack();
+            
+            // Stop tape spool animation
+            stopTapeSpoolAnimation();
+            
+            // Update status
+            document.getElementById('audioStatus').textContent = 'STOPPED';
+            document.getElementById('audioStatus').className = 'text-red-400';
+            
+            // Reset progress
+            resetProgress();
+            
+            // Stop audio visualization
+            stopAudioVisualization();
+            
+            updateDisplay();
+            logSpectral('Playback stopped');
+        }
+        
+        // Tape spool animation control functions
+        function startTapeSpoolAnimation() {
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            // Clear any existing animation classes
+            leftSpool.classList.remove('fast-forward', 'rewind');
+            rightSpool.classList.remove('fast-forward', 'rewind');
+            
+            // Add playing class for normal speed
+            leftSpool.classList.add('playing');
+            rightSpool.classList.add('playing');
+            
+            // Sync animation speed with audio tempo
+            syncSpoolAnimationWithAudio();
+        }
+        
+        function syncSpoolAnimationWithAudio() {
+            // Adjust spool animation speed based on current track type
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (currentSideData.length > 0) {
+                const currentTrack = currentSideData[appState.player.currentTrack];
+                const audioType = determineAudioType(currentTrack.name, currentTrack);
+                
+                const leftSpool = document.getElementById('leftSpool');
+                const rightSpool = document.getElementById('rightSpool');
+                
+                // Adjust animation duration based on audio type
+                let animationDuration = '3s'; // Default
+                
+                switch (audioType) {
+                    case 'rhythmic':
+                        animationDuration = '1s'; // Faster for rhythmic tracks
+                        break;
+                    case 'drone':
+                        animationDuration = '6s'; // Slower for drone tracks
+                        break;
+                    case 'spectral':
+                        animationDuration = '2s'; // Medium-fast for spectral
+                        break;
+                    case 'whispers':
+                        animationDuration = '4s'; // Slow for whispers
+                        break;
+                    default:
+                        animationDuration = '3s'; // Ambient default
+                }
+                
+                leftSpool.style.animationDuration = animationDuration;
+                rightSpool.style.animationDuration = animationDuration;
+            }
+        }
+        
+        function pauseTapeSpoolAnimation() {
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            leftSpool.classList.remove('playing', 'fast-forward', 'rewind');
+            rightSpool.classList.remove('playing', 'fast-forward', 'rewind');
+        }
+        
+        function stopTapeSpoolAnimation() {
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            leftSpool.classList.remove('playing', 'fast-forward', 'rewind');
+            rightSpool.classList.remove('playing', 'fast-forward', 'rewind');
+        }
+        
+        // Progress simulation
+        let progressInterval;
+        let currentProgress = 0;
+        
+        function startProgressSimulation() {
+            stopProgressSimulation(); // Clear any existing interval
+            
+            progressInterval = setInterval(() => {
+                if (appState.player.isPlaying) {
+                    currentProgress += 0.5; // Increment progress
+                    if (currentProgress > 100) {
+                        currentProgress = 0; // Loop back to start
+                        // Simulate track change
+                        const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+                        if (currentSideData.length > 0) {
+                            appState.player.currentTrack = (appState.player.currentTrack + 1) % currentSideData.length;
+                            updateDisplay();
+                        }
+                    }
+                    updateProgressBar();
+                }
+            }, 100);
+        }
+        
+        function stopProgressSimulation() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+        
+        function resetProgress() {
+            currentProgress = 0;
+            updateProgressBar();
+            stopProgressSimulation();
+        }
+        
+        function updateProgressBar() {
+            const progressBar = document.querySelector('#tapeProgress > div');
+            if (progressBar) {
+                progressBar.style.width = `${currentProgress}%`;
+            }
+        }
+        
+        // Fast forward and rewind functions
+        function fastForwardSpecTape() {
+            // Update button states
+            document.getElementById('fastForwardBtn').classList.add('active');
+            document.getElementById('rewindBtn').classList.remove('active');
+            document.getElementById('playBtn').classList.remove('active');
+            document.getElementById('pauseBtn').classList.remove('active');
+            document.getElementById('stopBtn').classList.remove('active');
+            
+            // Set fast forward animation
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            leftSpool.classList.remove('playing', 'rewind');
+            rightSpool.classList.remove('playing', 'rewind');
+            leftSpool.classList.add('fast-forward');
+            rightSpool.classList.add('fast-forward');
+            
+            // Update status
+            document.getElementById('audioStatus').textContent = 'FF >>';
+            document.getElementById('audioStatus').className = 'text-shock-orange neon-glow';
+            
+            // Fast progress simulation
+            currentProgress += 10;
+            if (currentProgress > 100) currentProgress = 100;
+            updateProgressBar();
+            
+            logSpectral('Fast forward activated');
+            
+            // Auto-return to normal after 2 seconds
+            setTimeout(() => {
+                if (document.getElementById('fastForwardBtn').classList.contains('active')) {
+                    pauseSpecTape();
+                }
+            }, 2000);
+        }
+        
+        function rewindSpecTape() {
+            // Update button states
+            document.getElementById('rewindBtn').classList.add('active');
+            document.getElementById('fastForwardBtn').classList.remove('active');
+            document.getElementById('playBtn').classList.remove('active');
+            document.getElementById('pauseBtn').classList.remove('active');
+            document.getElementById('stopBtn').classList.remove('active');
+            
+            // Set rewind animation
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            leftSpool.classList.remove('playing', 'fast-forward');
+            rightSpool.classList.remove('playing', 'fast-forward');
+            leftSpool.classList.add('rewind');
+            rightSpool.classList.add('rewind');
+            
+            // Update status
+            document.getElementById('audioStatus').textContent = '<< REW';
+            document.getElementById('audioStatus').className = 'text-shock-orange neon-glow';
+            
+            // Reverse progress simulation
+            currentProgress -= 10;
+            if (currentProgress < 0) currentProgress = 0;
+            updateProgressBar();
+            
+            logSpectral('Rewind activated');
+            
+            // Auto-return to normal after 2 seconds
+            setTimeout(() => {
+                if (document.getElementById('rewindBtn').classList.contains('active')) {
+                    pauseSpecTape();
+                }
+            }, 2000);
+        }
+        
+        // Side switching function
+        function switchSide(side) {
+            // Stop current audio if playing
+            if (appState.player.isPlaying) {
+                stopCurrentTrack();
+            }
+            
+            appState.player.currentSide = side;
+            appState.player.currentTrack = 0;
+            
+            // Update button states
+            document.getElementById('sideABtn').classList.toggle('active', side === 'A');
+            document.getElementById('sideBBtn').classList.toggle('active', side === 'B');
+            
+            // Update side selector colors
+            if (side === 'A') {
+                document.getElementById('sideABtn').className = 'side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active';
+                document.getElementById('sideBBtn').className = 'side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500';
+            } else {
+                document.getElementById('sideABtn').className = 'side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500';
+                document.getElementById('sideBBtn').className = 'side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active';
+            }
+            
+            // If we were playing, start playing the new side
+            if (appState.player.isPlaying) {
+                playCurrentTrack();
+            }
+            
+            updateDisplay();
+            logSpectral(`Switched to Side ${side}`);
+        }
+        
+        // Update display information
+        function updateDisplay() {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            const trackCount = currentSideData.length;
+            
+            // Update side indicator
+            document.getElementById('currentSide').textContent = `SIDE ${appState.player.currentSide}`;
+            
+            // Update track counter
+            document.getElementById('trackCounter').textContent = 
+                `${String(appState.player.currentTrack + 1).padStart(2, '0')}/${String(trackCount).padStart(2, '0')}`;
+            
+            // Update tape title
+            const title = appState.mixtape.title || '[UNTITLED MIXTAPE]';
+            document.getElementById('tapeTitle').textContent = title.toUpperCase();
+            
+            // Update track selector
+            updateTrackSelector();
+        }
+        
+        // Volume control functions
+        function handleVolumeChange(event) {
+            const volume = parseInt(event.target.value);
+            appState.player.volume = volume / 100; // Convert to 0-1 range
+            
+            // Update display
+            document.getElementById('volumeDisplay').textContent = `${volume}%`;
+            
+            // Apply volume to master output
+            if (audioInitialized) {
+                Tone.getDestination().volume.value = Tone.gainToDb(appState.player.volume);
+                
+                // Also update individual generators for consistency
+                Object.values(audioGenerators).forEach(generator => {
+                    if (generator.synth && generator.synth.volume) {
+                        generator.synth.volume.value = Tone.gainToDb(appState.player.volume * 0.8); // Slightly lower for headroom
+                    }
+                    if (generator.noise && generator.noise.volume) {
+                        generator.noise.volume.value = Tone.gainToDb(appState.player.volume * 0.6); // Lower for noise sources
+                    }
+                });
+            }
+            
+            // Update visual volume bars
+            updateVolumeVisualization(volume);
+            
+            logSpectral(`Volume set to ${volume}%`);
+        }
+        
+        function updateVolumeVisualization(volume) {
+            // This could be enhanced with actual audio level meters
+            // For now, we'll update the progress bar style based on volume
+            const progressBars = document.querySelectorAll('#tapeProgress > div');
+            progressBars.forEach(bar => {
+                if (volume > 80) {
+                    bar.style.background = 'linear-gradient(90deg, #40BF40, #BF40BF, #FF8C00)';
+                } else if (volume > 50) {
+                    bar.style.background = 'linear-gradient(90deg, #40BF40, #BF40BF)';
+                } else {
+                    bar.style.background = 'linear-gradient(90deg, #40BF40, #6b7280)';
+                }
+            });
+        }
+        
+        // Track selection functions
+        function updateTrackSelector() {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            const container = document.getElementById('trackSelector');
+            
+            // Clear existing buttons
+            container.innerHTML = '';
+            
+            if (currentSideData.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-xs text-center py-2">No tracks on this side</div>';
+                return;
+            }
+            
+            // Create track selection buttons
+            currentSideData.forEach((track, index) => {
+                const button = document.createElement('button');
+                const isCurrentTrack = index === appState.player.currentTrack;
+                const isPlaying = appState.player.isPlaying && isCurrentTrack;
+                const audioType = determineAudioType(track.name, track);
+                
+                button.className = `track-select-btn w-full px-2 py-1 rounded text-xs text-left flex justify-between items-center ${
+                    isCurrentTrack ? 'current-track' : ''
+                } ${
+                    isPlaying ? 'playing' : ''
+                }`;
+                
+                // Add audio type indicator
+                const typeIndicator = getAudioTypeIndicator(audioType);
+                
+                button.innerHTML = `
+                    <span class="flex items-center flex-1 truncate">
+                        <span class="mr-1">${typeIndicator}</span>
+                        <span>${String(index + 1).padStart(2, '0')}. ${track.name}</span>
+                    </span>
+                    <span class="text-xs text-gray-400 ml-2">${track.duration}</span>
+                `;
+                
+                button.addEventListener('click', () => selectTrack(index));
+                container.appendChild(button);
+            });
+        }
+        
+        function getAudioTypeIndicator(audioType) {
+            switch (audioType) {
+                case 'ambient': return '🌊';
+                case 'spectral': return '👻';
+                case 'rhythmic': return '🥁';
+                case 'drone': return '📡';
+                case 'whispers': return '🗣️';
+                default: return '🎵';
+            }
+        }
+        
+        function selectTrack(trackIndex) {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (trackIndex >= 0 && trackIndex < currentSideData.length) {
+                // Stop current track
+                stopCurrentTrack();
+                
+                // Set new track
+                appState.player.currentTrack = trackIndex;
+                
+                // Update display
+                updateDisplay();
+                
+                // If we were playing, start the new track
+                if (appState.player.isPlaying) {
+                    playCurrentTrack();
+                }
+                
+                logSpectral(`Selected track ${trackIndex + 1}: "${currentSideData[trackIndex].name}"`);
+            }
+        }
+        
+        // Hidden click handler for easter egg
+        function handleHiddenClick() {
+            const now = Date.now();
+            
+            // Reset counter if more than 30 seconds have passed
+            if (now - appState.easterEggs.lastClickTime > 30000) {
+                appState.easterEggs.hiddenClicks = 0;
+            }
+            
+            appState.easterEggs.hiddenClicks++;
+            appState.easterEggs.lastClickTime = now;
+            
+            logSpectral(`Hidden click detected (${appState.easterEggs.hiddenClicks}/5)`);
+            
+            // Trigger bass drop after 5 clicks
+            if (appState.easterEggs.hiddenClicks >= 5) {
+                triggerBassDropEffect();
+                appState.easterEggs.hiddenClicks = 0;
+            }
+        }
+        
+        // Bass drop easter egg effect
+        function triggerBassDropEffect() {
+            logSpectral('BASS DROP ACTIVATED!');
+            
+            // Enhanced visual feedback
+            const cassetteLabel = document.getElementById('cassette-label');
+            cassetteLabel.style.background = 'linear-gradient(45deg, #BF40BF, #FF8C00)';
+            cassetteLabel.style.transform = 'scale(1.1)';
+            cassetteLabel.style.boxShadow = '0 0 20px #BF40BF';
+            
+            // Screen flash effect
+            document.body.style.background = '#BF40BF';
+            setTimeout(() => {
+                document.body.style.background = '';
+            }, 100);
+            
+            // Reset visual effects
+            setTimeout(() => {
+                cassetteLabel.style.background = '';
+                cassetteLabel.style.transform = '';
+                cassetteLabel.style.boxShadow = '';
+            }, 800);
+            
+            // Play enhanced bass drop sequence
+            if (audioInitialized && audioGenerators.rhythmic) {
+                const bassGen = audioGenerators.rhythmic;
+                
+                // Triple bass drop with increasing intensity
+                bassGen.synth.triggerAttackRelease('C0', '1n');
+                
+                setTimeout(() => {
+                    bassGen.synth.triggerAttackRelease('C0', '2n');
+                    // Add some spectral distortion
+                    if (audioGenerators.spectral) {
+                        audioGenerators.spectral.synth.triggerAttackRelease('C2', '8n');
+                    }
+                }, 300);
+                
+                setTimeout(() => {
+                    bassGen.synth.triggerAttackRelease('C0', '4n');
+                    // Final spectral hit
+                    if (audioGenerators.spectral) {
+                        audioGenerators.spectral.synth.triggerAttackRelease('C3', '16n');
+                    }
+                }, 600);
+            }
+            
+            // Show bass drop message
+            showBassDropMessage();
+        }
+        
+        function showBassDropMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'fixed bottom-4 right-4 bg-black border-2 border-neon-purple rounded p-4 z-50 animate-bounce';
+            messageDiv.innerHTML = `
+                <div class="text-neon-purple font-mono text-sm neon-glow">
+                    BASS FREQUENCY DETECTED
+                </div>
+                <div class="text-shock-orange font-mono text-xs mt-1">
+                    Spectral resonance achieved!
+                </div>
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 2000);
+        }
+        
+        // Additional Easter Egg Functions
+        let spoolClickCount = 0;
+        let titleClickCount = 0;
+        let lastSpoolClickTime = 0;
+        let lastTitleClickTime = 0;
+        
+        function handleSpoolClick(event) {
+            const now = Date.now();
+            
+            // Reset counter if more than 10 seconds have passed
+            if (now - lastSpoolClickTime > 10000) {
+                spoolClickCount = 0;
+            }
+            
+            spoolClickCount++;
+            lastSpoolClickTime = now;
+            
+            logSpectral(`Spool click detected (${spoolClickCount}/3)`);
+            
+            // Trigger spool spin effect after 3 clicks
+            if (spoolClickCount >= 3) {
+                triggerSpoolSpinEffect();
+                spoolClickCount = 0;
+            } else {
+                // Visual feedback for each click
+                event.target.style.transform = 'scale(1.1) rotate(45deg)';
+                setTimeout(() => {
+                    event.target.style.transform = '';
+                }, 200);
+            }
+        }
+        
+        function triggerSpoolSpinEffect() {
+            logSpectral('SPOOL SPIN EFFECT ACTIVATED!');
+            
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            // Crazy spin animation
+            leftSpool.style.animation = 'spin-spool 0.1s linear infinite';
+            rightSpool.style.animation = 'spin-spool 0.1s linear infinite reverse';
+            
+            // Play mechanical whirring sound
+            if (audioInitialized && audioGenerators.drone) {
+                const droneGen = audioGenerators.drone;
+                droneGen.synth.triggerAttack('A1');
+                
+                // Modulate frequency for whirring effect
+                let freq = 110; // A1 frequency
+                const modulateInterval = setInterval(() => {
+                    freq += Math.random() * 20 - 10; // Random frequency variation
+                    droneGen.synth.frequency.setValueAtTime(freq, Tone.now());
+                }, 50);
+                
+                setTimeout(() => {
+                    droneGen.synth.triggerRelease();
+                    clearInterval(modulateInterval);
+                }, 2000);
+            }
+            
+            // Show spinning message
+            showSpinMessage();
+            
+            // Reset animation after 3 seconds
+            setTimeout(() => {
+                leftSpool.style.animation = '';
+                rightSpool.style.animation = '';
+            }, 3000);
+        }
+        
+        function showSpinMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black border-2 border-shock-orange rounded p-6 z-50';
+            messageDiv.innerHTML = `
+                <div class="text-shock-orange font-mono text-lg neon-glow text-center">
+                    TAPE MECHANISM OVERLOAD
+                </div>
+                <div class="text-radioactive-green font-mono text-sm mt-2 text-center">
+                    Spectral energy detected in drive system!
+                </div>
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 2500);
+        }
+        
+        function handleTitleClick(event) {
+            const now = Date.now();
+            
+            // Reset counter if more than 15 seconds have passed
+            if (now - lastTitleClickTime > 15000) {
+                titleClickCount = 0;
+            }
+            
+            titleClickCount++;
+            lastTitleClickTime = now;
+            
+            logSpectral(`Title click detected (${titleClickCount}/7)`);
+            
+            // Trigger secret mode after 7 clicks
+            if (titleClickCount >= 7) {
+                triggerSecretMode();
+                titleClickCount = 0;
+            } else {
+                // Visual feedback - color cycle
+                const colors = ['#BF40BF', '#40BF40', '#FF8C00', '#00FF00'];
+                const color = colors[titleClickCount % colors.length];
+                event.target.style.color = color;
+                event.target.style.textShadow = `0 0 20px ${color}`;
+                
+                setTimeout(() => {
+                    event.target.style.color = '';
+                    event.target.style.textShadow = '';
+                }, 500);
+            }
+        }
+        
+        function triggerSecretMode() {
+            logSpectral('SECRET PARANORMAL MODE ACTIVATED!');
+            
+            // Change the entire interface theme temporarily
+            document.body.style.filter = 'hue-rotate(180deg) saturate(1.5)';
+            document.body.style.background = 'radial-gradient(circle, #1a0033, #000)';
+            
+            // Play mysterious chord progression
+            if (audioInitialized && audioGenerators.ambient) {
+                const ambientGen = audioGenerators.ambient;
+                const mysteriousChord = ['C2', 'Eb2', 'G2', 'Bb2'];
+                
+                mysteriousChord.forEach((note, index) => {
+                    setTimeout(() => {
+                        ambientGen.synth.triggerAttackRelease(note, '2n');
+                    }, index * 500);
+                });
+            }
+            
+            // Show secret message
+            showSecretMessage();
+            
+            // Reset theme after 10 seconds
+            setTimeout(() => {
+                document.body.style.filter = '';
+                document.body.style.background = '';
+            }, 10000);
+        }
+        
+        function showSecretMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80';
+            messageDiv.innerHTML = `
+                <div class="text-center p-8">
+                    <div class="text-6xl font-mono text-neon-purple neon-glow mb-4 animate-pulse">
+                        WELCOME TO THE VOID
+                    </div>
+                    <div class="text-xl font-mono text-radioactive-green mb-4">
+                        You have discovered the hidden paranormal frequency
+                    </div>
+                    <div class="text-lg font-mono text-shock-orange">
+                        The spirits acknowledge your persistence...
+                    </div>
+                    <div class="text-sm font-mono text-gray-400 mt-4">
+                        [Click anywhere to return to reality]
+                    </div>
+                </div>
+            `;
+            
+            // Click to dismiss
+            messageDiv.addEventListener('click', () => {
+                document.body.removeChild(messageDiv);
+            });
+            
+            document.body.appendChild(messageDiv);
+            
+            // Auto-dismiss after 8 seconds
+            setTimeout(() => {
+                if (document.body.contains(messageDiv)) {
+                    document.body.removeChild(messageDiv);
+                }
+            }, 8000);
+        }
+        
+        // System Integration Validation
+        function validateSystemIntegration() {
+            const validationResults = {
+                audioSystem: false,
+                mixtapeEditor: false,
+                evpAnalysis: false,
+                sharingSystem: false,
+                easterEggs: false,
+                uiComponents: false
+            };
+            
+            // Check audio system
+            try {
+                if (typeof Tone !== 'undefined' && audioGenerators) {
+                    validationResults.audioSystem = true;
+                    logSpectral('✓ Audio system validated');
+                }
+            } catch (error) {
+                logSpectral('✗ Audio system validation failed');
+            }
+            
+            // Check mixtape editor
+            if (document.getElementById('mixtapeTitle') && 
+                document.getElementById('sideAEditor') && 
+                document.getElementById('sideBEditor')) {
+                validationResults.mixtapeEditor = true;
+                logSpectral('✓ Mixtape editor validated');
+            }
+            
+            // Check EVP analysis
+            if (document.getElementById('evpTranscript') && 
+                document.getElementById('analyzeBtn')) {
+                validationResults.evpAnalysis = true;
+                logSpectral('✓ EVP analysis system validated');
+            }
+            
+            // Check sharing system
+            if (document.getElementById('shareTracklistBtn') && 
+                document.getElementById('shareMixtapeDataBtn')) {
+                validationResults.sharingSystem = true;
+                logSpectral('✓ Sharing system validated');
+            }
+            
+            // Check easter eggs
+            if (konamiSequence && 
+                document.getElementById('cassette-label') && 
+                document.getElementById('staticOverlay')) {
+                validationResults.easterEggs = true;
+                logSpectral('✓ Easter egg system validated');
+            }
+            
+            // Check UI components
+            if (document.getElementById('playBtn') && 
+                document.getElementById('volumeSlider') && 
+                document.getElementById('trackSelector')) {
+                validationResults.uiComponents = true;
+                logSpectral('✓ UI components validated');
+            }
+            
+            // Report validation summary
+            const passedTests = Object.values(validationResults).filter(result => result).length;
+            const totalTests = Object.keys(validationResults).length;
+            
+            logSpectral(`System validation: ${passedTests}/${totalTests} components operational`);
+            
+            if (passedTests === totalTests) {
+                logSpectral('🎉 All systems operational - SPEC-TAPE ready for paranormal investigation');
+            } else {
+                logSpectral('⚠️ Some systems may need attention');
+            }
+            
+            return validationResults;
+        }
+        
+        // Cross-Browser Compatibility System
+        function checkBrowserCompatibility() {
+            const compatibility = {
+                webAudio: false,
+                clipboard: false,
+                localStorage: false,
+                es6: false,
+                css3: false
+            };
+            
+            // Check Web Audio API
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    compatibility.webAudio = true;
+                    logSpectral('✓ Web Audio API supported');
+                } else {
+                    logSpectral('✗ Web Audio API not supported');
+                }
+            } catch (error) {
+                logSpectral('✗ Web Audio API check failed');
+            }
+            
+            // Check Clipboard API
+            if (navigator.clipboard || document.execCommand) {
+                compatibility.clipboard = true;
+                logSpectral('✓ Clipboard functionality available');
+            } else {
+                logSpectral('✗ Clipboard functionality not available');
+            }
+            
+            // Check localStorage
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                compatibility.localStorage = true;
+                logSpectral('✓ Local storage supported');
+            } catch (error) {
+                logSpectral('✗ Local storage not supported');
+            }
+            
+            // Check ES6 features
+            try {
+                eval('const test = () => {}; class Test {}');
+                compatibility.es6 = true;
+                logSpectral('✓ ES6 features supported');
+            } catch (error) {
+                logSpectral('✗ ES6 features not fully supported');
+            }
+            
+            // Check CSS3 features
+            const testElement = document.createElement('div');
+            if ('transform' in testElement.style || 
+                'webkitTransform' in testElement.style) {
+                compatibility.css3 = true;
+                logSpectral('✓ CSS3 transforms supported');
+            } else {
+                logSpectral('✗ CSS3 transforms not supported');
+            }
+            
+            return compatibility;
+        }
+        
+        // Browser-specific fixes
+        function applyBrowserFixes() {
+            // Safari audio context fix
+            if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+                logSpectral('Safari detected - applying audio context fixes');
+                
+                // Safari requires user interaction before audio context
+                document.addEventListener('touchstart', initializeAudio, { once: true });
+                document.addEventListener('touchend', initializeAudio, { once: true });
+            }
+            
+            // Firefox specific fixes
+            if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+                logSpectral('Firefox detected - applying compatibility fixes');
+                
+                // Firefox clipboard fallback
+                if (!navigator.clipboard) {
+                    logSpectral('Using execCommand fallback for Firefox');
+                }
+            }
+            
+            // Edge/IE fixes
+            if (navigator.userAgent.indexOf('Edge') > -1 || navigator.userAgent.indexOf('Trident') > -1) {
+                logSpectral('Edge/IE detected - applying legacy fixes');
+                
+                // Polyfill for older browsers
+                if (!Array.prototype.includes) {
+                    Array.prototype.includes = function(searchElement) {
+                        return this.indexOf(searchElement) !== -1;
+                    };
+                }
+            }
+        }
+        
+        // Comprehensive Testing Suite
+        function runDiagnosticTests() {
+            logSpectral('🔧 Running diagnostic tests...');
+            testKonamiCodeDetection();
+            testAudioSystem();
+            testUIInteractions();
+            testClipboardFunctionality();
+            logSpectral('🔧 Diagnostic tests completed');
+        }
+        
+        function testKonamiCodeDetection() {
+            logSpectral('Testing Konami code detection...');
+            if (konamiSequence && konamiSequence.length === 11) {
+                logSpectral('✓ Konami sequence properly defined');
+                logSpectral(`Sequence: ${konamiSequence.join(', ')}`);
+            } else {
+                logSpectral('✗ Konami sequence not properly defined');
+            }
+            
+            if (appState.easterEggs) {
+                logSpectral(`✓ Easter egg state initialized (progress: ${appState.easterEggs.konamiProgress})`);
+            } else {
+                logSpectral('✗ Easter egg state not initialized');
+            }
+        }
+        
+        function testAudioSystem() {
+            logSpectral('Testing audio system...');
+            if (typeof Tone !== 'undefined') {
+                logSpectral('✓ Tone.js loaded');
+            } else {
+                logSpectral('✗ Tone.js not loaded');
+            }
+            
+            if (audioGenerators && Object.keys(audioGenerators).length > 0) {
+                logSpectral(`✓ Audio generators initialized (${Object.keys(audioGenerators).length} types)`);
+            } else {
+                logSpectral('✗ Audio generators not initialized');
+            }
+        }
+        
+        function testUIInteractions() {
+            logSpectral('Testing UI interactions...');
+            const criticalElements = ['playBtn', 'pauseBtn', 'stopBtn', 'volumeSlider', 'mixtapeTitle', 'evpTranscript', 'cassette-label'];
+            let elementsFound = 0;
+            criticalElements.forEach(id => {
+                if (document.getElementById(id)) {
+                    elementsFound++;
+                } else {
+                    logSpectral(`✗ Missing element: ${id}`);
+                }
+            });
+            logSpectral(`✓ UI elements found: ${elementsFound}/${criticalElements.length}`);
+        }
+        
+        function testClipboardFunctionality() {
+            logSpectral('Testing clipboard functionality...');
+            if (navigator.clipboard) {
+                logSpectral('✓ Modern Clipboard API available');
+            } else if (document.execCommand) {
+                logSpectral('✓ Legacy clipboard method available');
+            } else {
+                logSpectral('✗ No clipboard functionality available');
+            }
+        }
+        
+        // Debug Konami Code specifically
+        function debugKonamiCode() {
+            logSpectral('🐛 Debugging Konami code...');
+            
+            // Enhanced keydown handler with debugging - replaces the original
+            document.removeEventListener('keydown', handleKonamiInput);
+            
+            document.addEventListener('keydown', function(event) {
+                const expectedKey = konamiSequence[appState.easterEggs.konamiProgress];
+                const inKonamiSequence = appState.easterEggs.konamiProgress > 0;
+                
+                logSpectral(`Key pressed: ${event.code} (expected: ${expectedKey}, sequence progress: ${appState.easterEggs.konamiProgress})`);
+                
+                // If we're in a Konami sequence, prioritize that over shortcuts
+                if (inKonamiSequence && event.code === expectedKey) {
+                    event.preventDefault(); // Prevent default behavior
+                    appState.easterEggs.konamiProgress++;
+                    logSpectral(`✓ Correct key! Progress: ${appState.easterEggs.konamiProgress}/${konamiSequence.length}`);
+                    
+                    if (appState.easterEggs.konamiProgress >= konamiSequence.length) {
+                        logSpectral('🎉 KONAMI CODE COMPLETED!');
+                        triggerKonamiEffect();
+                        appState.easterEggs.konamiProgress = 0;
+                    }
+                    return; // Exit early to prevent shortcuts
+                }
+                
+                // If we're in a sequence but got wrong key, reset
+                if (inKonamiSequence && event.code !== expectedKey) {
+                    logSpectral(`✗ Wrong key in sequence! Resetting. Got ${event.code}, expected ${expectedKey}`);
+                    appState.easterEggs.konamiProgress = 0;
+                    // Don't return here - allow the shortcut to work if applicable
+                }
+                
+                // Check if this could be the start of Konami sequence
+                if (appState.easterEggs.konamiProgress === 0 && event.code === konamiSequence[0]) {
+                    appState.easterEggs.konamiProgress = 1;
+                    logSpectral(`🎮 Konami sequence started with: ${event.code}`);
+                    event.preventDefault(); // Prevent the shortcut for first key
+                    return;
+                }
+                
+                // Handle keyboard shortcuts only if not in Konami sequence
+                if (!inKonamiSequence && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                    switch (event.code) {
+                        case 'Space':
+                            event.preventDefault();
+                            if (appState.player.isPlaying) {
+                                pauseSpecTape();
+                            } else {
+                                playSpecTape();
+                            }
+                            logSpectral('Shortcut: Space (Play/Pause)');
+                            return;
+                        case 'ArrowLeft':
+                            event.preventDefault();
+                            previousTrack();
+                            logSpectral('Shortcut: Left Arrow (Previous Track)');
+                            return;
+                        case 'ArrowRight':
+                            event.preventDefault();
+                            nextTrack();
+                            logSpectral('Shortcut: Right Arrow (Next Track)');
+                            return;
+                        case 'KeyS':
+                            event.preventDefault();
+                            stopSpecTape();
+                            logSpectral('Shortcut: S (Stop)');
+                            return;
+                        case 'KeyA':
+                            event.preventDefault();
+                            switchSide('A');
+                            logSpectral('Shortcut: A (Side A)');
+                            return;
+                        case 'KeyB':
+                            event.preventDefault();
+                            switchSide('B');
+                            logSpectral('Shortcut: B (Side B)');
+                            return;
+                    }
+                }
+            });
+            
+            logSpectral('🐛 Enhanced Konami code debugging enabled');
+        }
+        
+        // Konami code sound effect
+        function triggerKonamiEffect() {
+            logSpectral('KONAMI CODE ACTIVATED!');
+            
+            // Show static overlay with enhanced effects
+            const overlay = document.getElementById('staticOverlay');
+            overlay.classList.add('active');
+            
+            // Add screen shake effect
+            document.body.style.animation = 'screen-shake 0.5s ease-in-out 3';
+            
+            // Flash the entire interface
+            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+            setTimeout(() => {
+                document.body.style.filter = '';
+            }, 200);
+            
+            // Play enhanced spectral sequence
+            if (audioInitialized && audioGenerators.spectral) {
+                const spectralGen = audioGenerators.spectral;
+                
+                // Create an eerie ascending tone sequence
+                const notes = ['C1', 'D#2', 'F#2', 'A2', 'C3', 'D#3', 'F#3'];
+                notes.forEach((note, index) => {
+                    setTimeout(() => {
+                        spectralGen.synth.triggerAttackRelease(note, '8n');
+                        
+                        // Add distortion sweep
+                        if (spectralGen.distortion) {
+                            spectralGen.distortion.distortion = 0.1 + (index * 0.1);
+                        }
+                    }, index * 150);
+                });
+                
+                // Add layered static noise
+                if (audioGenerators.whispers) {
+                    const whisperGen = audioGenerators.whispers;
+                    whisperGen.noise.start();
+                    whisperGen.envelope.triggerAttackRelease('1n');
+                    
+                    setTimeout(() => {
+                        whisperGen.noise.stop();
+                    }, 3000);
+                }
+                
+                // Add drone undertone
+                if (audioGenerators.drone) {
+                    const droneGen = audioGenerators.drone;
+                    droneGen.synth.triggerAttack('C0');
+                    setTimeout(() => {
+                        droneGen.synth.triggerRelease();
+                    }, 2500);
+                }
+            }
+            
+            // Show special message
+            showKonamiMessage();
+            
+            // Remove overlay after 5 seconds
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                document.body.style.animation = '';
+            }, 5000);
+        }
+        
+        function showKonamiMessage() {
+            // Create temporary message overlay
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'fixed inset-0 flex items-center justify-center z-50 pointer-events-none';
+            messageDiv.innerHTML = `
+                <div class="bg-black border-4 border-radioactive-green rounded-lg p-8 text-center animate-pulse">
+                    <div class="text-radioactive-green font-mono text-2xl neon-glow mb-4">
+                        SPECTRAL BREACH DETECTED
+                    </div>
+                    <div class="text-shock-orange font-mono text-lg">
+                        PARANORMAL ACTIVITY LEVEL: MAXIMUM
+                    </div>
+                    <div class="text-neon-purple font-mono text-sm mt-2">
+                        [DIMENSIONAL BARRIER COMPROMISED]
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 3000);
+        }
+        
+        // Konami code detection and keyboard shortcuts
+        function handleKonamiInput(event) {
+            // Check if we're in the middle of a Konami sequence
+            const inKonamiSequence = appState.easterEggs.konamiProgress > 0;
+            const expectedKey = konamiSequence[appState.easterEggs.konamiProgress];
+            
+            // If we're in a Konami sequence, prioritize that over shortcuts
+            if (inKonamiSequence && event.code === expectedKey) {
+                event.preventDefault(); // Prevent default behavior
+                appState.easterEggs.konamiProgress++;
+                logSpectral(`Konami progress: ${appState.easterEggs.konamiProgress}/${konamiSequence.length}`);
+                
+                if (appState.easterEggs.konamiProgress >= konamiSequence.length) {
+                    triggerKonamiEffect();
+                    appState.easterEggs.konamiProgress = 0;
+                }
+                return; // Exit early to prevent shortcuts
+            }
+            
+            // If we're in a sequence but got wrong key, reset
+            if (inKonamiSequence && event.code !== expectedKey) {
+                logSpectral(`Konami sequence reset - got ${event.code}, expected ${expectedKey}`);
+                appState.easterEggs.konamiProgress = 0;
+                // Don't return here - allow the shortcut to work
+            }
+            
+            // Check if this could be the start of Konami sequence
+            if (appState.easterEggs.konamiProgress === 0 && event.code === konamiSequence[0]) {
+                appState.easterEggs.konamiProgress = 1;
+                logSpectral(`Konami sequence started: ${event.code}`);
+                event.preventDefault(); // Prevent the shortcut for first key
+                return;
+            }
+            
+            // Handle keyboard shortcuts only if not in Konami sequence
+            if (!inKonamiSequence && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                switch (event.code) {
+                    case 'Space':
+                        event.preventDefault();
+                        if (appState.player.isPlaying) {
+                            pauseSpecTape();
+                        } else {
+                            playSpecTape();
+                        }
+                        return;
+                    case 'ArrowLeft':
+                        event.preventDefault();
+                        previousTrack();
+                        return;
+                    case 'ArrowRight':
+                        event.preventDefault();
+                        nextTrack();
+                        return;
+                    case 'KeyS':
+                        event.preventDefault();
+                        stopSpecTape();
+                        return;
+                    case 'KeyA':
+                        event.preventDefault();
+                        switchSide('A');
+                        return;
+                    case 'KeyB':
+                        event.preventDefault();
+                        switchSide('B');
+                        return;
+                }
+            }
+        }
+        
+        // Track navigation functions
+        function nextTrack() {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (currentSideData.length > 0) {
+                const nextIndex = (appState.player.currentTrack + 1) % currentSideData.length;
+                selectTrack(nextIndex);
+                logSpectral('Next track');
+            }
+        }
+        
+        function previousTrack() {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (currentSideData.length > 0) {
+                const prevIndex = appState.player.currentTrack === 0 ? 
+                    currentSideData.length - 1 : 
+                    appState.player.currentTrack - 1;
+                selectTrack(prevIndex);
+                logSpectral('Previous track');
+            }
+        }
+        
+        // Create sample mixtape for demonstration
+        function createSampleMixtape() {
+            appState.mixtape.title = "Kiroween Spectral Demo";
+            
+            appState.mixtape.sideA = [
+                { name: "Spectral Whispers", duration: "3:45", audioType: "spectral" },
+                { name: "Haunted Frequencies", duration: "4:12", audioType: "spectral" },
+                { name: "Ethereal Echoes", duration: "2:58", audioType: "ambient" },
+                { name: "Paranormal Pulse", duration: "3:33", audioType: "rhythmic" }
+            ];
+            
+            appState.mixtape.sideB = [
+                { name: "Static Dreams", duration: "5:21", audioType: "drone" },
+                { name: "Ghostly Grooves", duration: "3:07", audioType: "rhythmic" },
+                { name: "Neon Nightmares", duration: "4:44", audioType: "whispers" },
+                { name: "Cosmic Lullaby", duration: "2:15", audioType: "ambient" }
+            ];
+            
+            // Update UI
+            document.getElementById('mixtapeTitle').value = appState.mixtape.title;
+            document.getElementById('titleCharCount').textContent = appState.mixtape.title.length;
+            renderTracks('A');
+            renderTracks('B');
+            updateTrackCounts();
+            
+            logSpectral('Sample mixtape created with unique audio-enabled tracks');
+        }
+        
+        // EVP Analysis System
+        function initializeEVPAnalysis() {
+            // EVP transcript input
+            const evpInput = document.getElementById('evpTranscript');
+            evpInput.addEventListener('input', handleEVPInput);
+            
+            // Analysis button
+            document.getElementById('analyzeBtn').addEventListener('click', startEVPAnalysis);
+            
+            // Clear button
+            document.getElementById('clearEvpBtn').addEventListener('click', clearEVPInput);
+            
+            // Sample EVP buttons
+            document.querySelectorAll('.evp-sample').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const sample = e.target.getAttribute('data-sample');
+                    document.getElementById('evpTranscript').value = sample;
+                    handleEVPInput({ target: { value: sample } });
+                });
+            });
+            
+            logSpectral('EVP Analysis system initialized');
+        }
+        
+        function handleEVPInput(event) {
+            const transcript = event.target.value;
+            const charCount = transcript.length;
+            
+            // Update character count
+            document.getElementById('evpCharCount').textContent = charCount;
+            
+            // Validate input
+            const sanitizedTranscript = transcript.replace(/[^\x20-\x7E\n\r]/g, '');
+            if (sanitizedTranscript !== transcript) {
+                event.target.value = sanitizedTranscript;
+                logSpectral('Invalid characters removed from EVP transcript');
+            }
+            
+            // Update app state
+            appState.evp.transcript = sanitizedTranscript;
+            
+            // Enable/disable analyze button
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            if (sanitizedTranscript.trim().length > 0) {
+                analyzeBtn.disabled = false;
+                analyzeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                analyzeBtn.disabled = true;
+                analyzeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        function clearEVPInput() {
+            document.getElementById('evpTranscript').value = '';
+            document.getElementById('evpCharCount').textContent = '0';
+            appState.evp.transcript = '';
+            appState.evp.report = null;
+            appState.evp.error = null;
+            
+            // Disable analyze button
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = true;
+            analyzeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Hide analysis status
+            document.getElementById('analysisStatusContainer').classList.add('hidden');
+            
+            logSpectral('EVP input cleared');
+        }
+        
+        function startEVPAnalysis() {
+            const transcript = appState.evp.transcript.trim();
+            
+            if (!transcript) {
+                logSpectral('No EVP transcript provided');
+                return;
+            }
+            
+            // Update state
+            appState.evp.isAnalyzing = true;
+            appState.evp.error = null;
+            
+            // Show analysis status
+            showAnalysisProgress();
+            
+            // Disable analyze button during analysis
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'ANALYZING...';
+            analyzeBtn.classList.add('analyzing');
+            
+            logSpectral(`Starting EVP analysis: "${transcript}"`);
+            
+            // Simulate analysis progress
+            simulateAnalysisProgress();
+            
+            // Call Google Gemini API for real analysis
+            callGeminiAPI(transcript);
+        }
+        
+        function showAnalysisProgress() {
+            const container = document.getElementById('analysisStatusContainer');
+            const status = document.getElementById('analysisStatus');
+            const progress = document.getElementById('analysisProgress');
+            
+            container.classList.remove('hidden');
+            status.textContent = 'INITIALIZING SPECTRAL ANALYSIS...';
+            progress.style.width = '0%';
+        }
+        
+        function simulateAnalysisProgress() {
+            const status = document.getElementById('analysisStatus');
+            const progress = document.getElementById('analysisProgress');
+            
+            const steps = [
+                { text: 'SCANNING PHONETIC PATTERNS', progress: 20 },
+                { text: 'ANALYZING SPECTRAL FREQUENCIES', progress: 40 },
+                { text: 'DETECTING PARANORMAL ANOMALIES', progress: 60 },
+                { text: 'PROCESSING LINGUISTIC STRUCTURES', progress: 80 },
+                { text: 'GENERATING CLASSIFICATION REPORT', progress: 100 }
+            ];
+            
+            let currentStep = 0;
+            
+            const updateProgress = () => {
+                if (currentStep < steps.length && appState.evp.isAnalyzing) {
+                    const step = steps[currentStep];
+                    status.textContent = step.text;
+                    status.className = 'text-radioactive-green font-mono text-sm loading-dots';
+                    progress.style.width = `${step.progress}%`;
+                    
+                    currentStep++;
+                    setTimeout(updateProgress, 1000);
+                }
+            };
+            
+            updateProgress();
+        }
+        
+        function generateMockAnalysis(transcript) {
+            // This will be replaced with actual API call in Task 4.2
+            const mockReport = {
+                classification: determineMockClassification(transcript),
+                valence: determineMockValence(transcript),
+                phoneticAnomalies: generateMockPhoneticAnomalies(transcript),
+                suggestedMeaning: generateMockMeaning(transcript)
+            };
+            
+            // Complete analysis
+            completeAnalysis(mockReport);
+        }
+        
+        function determineMockClassification(transcript) {
+            const text = transcript.toLowerCase();
+            if (text.includes('clear') || text.includes('loud') || text.includes('distinct')) {
+                return 'Class A (Clear)';
+            } else if (text.includes('whisper') || text.includes('faint') || text.includes('unclear')) {
+                return 'Class C (Unclear)';
+            } else {
+                return 'Class B (Ambiguous)';
+            }
+        }
+        
+        function determineMockValence(transcript) {
+            const text = transcript.toLowerCase();
+            if (text.includes('help') || text.includes('scared') || text.includes('crying')) {
+                return 'Distress';
+            } else if (text.includes('angry') || text.includes('leave') || text.includes('get out')) {
+                return 'Hostile';
+            } else if (text.includes('laugh') || text.includes('play') || text.includes('happy')) {
+                return 'Playful';
+            } else {
+                return 'Neutral';
+            }
+        }
+        
+        function generateMockPhoneticAnomalies(transcript) {
+            const anomalies = [
+                'Reversed phoneme sequences detected',
+                'Spectral distortion in vocal frequencies',
+                'Temporal displacement in syllable structure',
+                'Electromagnetic interference patterns',
+                'Subsonic resonance anomalies',
+                'Paranormal frequency modulation'
+            ];
+            
+            return anomalies[Math.floor(Math.random() * anomalies.length)];
+        }
+        
+        function generateMockMeaning(transcript) {
+            const text = transcript.toLowerCase();
+            
+            if (text.includes('help')) {
+                return 'Entity appears to be requesting assistance or expressing distress';
+            } else if (text.includes('leave') || text.includes('get out')) {
+                return 'Territorial manifestation attempting to establish dominance';
+            } else if (text.includes('child') || text.includes('laugh')) {
+                return 'Juvenile spectral presence engaging in playful interaction';
+            } else if (text.includes('door') || text.includes('footstep')) {
+                return 'Residual energy imprint of past physical activities';
+            } else {
+                return 'Unclassified paranormal communication requiring further investigation';
+            }
+        }
+        
+        function completeAnalysis(report) {
+            // Update state
+            appState.evp.isAnalyzing = false;
+            appState.evp.report = report;
+            
+            // Update UI
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'ANALYZE SPECTRAL DATA';
+            analyzeBtn.classList.remove('analyzing');
+            
+            const status = document.getElementById('analysisStatus');
+            status.textContent = 'ANALYSIS COMPLETE - REPORT GENERATED';
+            status.className = 'text-radioactive-green font-mono text-sm neon-glow';
+            
+            // Update analysis status in main interface
+            document.getElementById('analysisStatus').textContent = 'COMPLETE';
+            document.getElementById('analysisStatus').className = 'text-radioactive-green neon-glow';
+            
+            // Display the analysis report
+            displayAnalysisReport(report);
+            
+            logSpectral('EVP analysis completed');
+        }
+        
+        // Google Gemini API Integration
+        async function callGeminiAPI(transcript) {
+            const apiKey = ""; // API key will be provided by environment
+            
+            if (!apiKey) {
+                logSpectral('No API key provided, using mock analysis');
+                setTimeout(() => generateMockAnalysis(transcript), 2000);
+                return;
+            }
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = `Act as a Level 7 Spec-Tape Analyst and Paranormal Linguistics Expert. You are analyzing transcripts of suspected Electronic Voice Phenomena (EVP) recordings for the Kiroween Spectral Analysis Division.
+
+Your role is to provide scientific-sounding but entertaining paranormal analysis of audio transcripts. Analyze the user's transcript for:
+1. Classification based on clarity (Class A = Clear, Class B = Ambiguous, Class C = Unclear)
+2. Emotional valence (Hostile, Neutral, Playful, Distress)
+3. Phonetic anomalies (describe spectral/paranormal sound characteristics)
+4. Suggested meaning (your interpretation of the spectral message)
+
+Maintain a serious, scientific tone while being creative with paranormal explanations. **ALWAYS** respond in the specified JSON format.`;
+            
+            const payload = {
+                contents: [{ 
+                    parts: [{ text: transcript }] 
+                }],
+                systemInstruction: { 
+                    parts: [{ text: systemPrompt }] 
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "classification": { 
+                                "type": "STRING", 
+                                "description": "E.g., Class A (Clear), Class B (Ambiguous), Class C (Unclear)" 
+                            },
+                            "valence": { 
+                                "type": "STRING", 
+                                "description": "E.g., Hostile, Neutral, Playful, Distress" 
+                            },
+                            "phoneticAnomalies": { 
+                                "type": "STRING", 
+                                "description": "A brief, spooky description of sound characteristics." 
+                            },
+                            "suggestedMeaning": { 
+                                "type": "STRING", 
+                                "description": "The AI's interpretation of the spectral message." 
+                            }
+                        }
+                    }
+                }
+            };
+            
+            try {
+                logSpectral('Calling Gemini API for EVP analysis...');
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    const analysisText = data.candidates[0].content.parts[0].text;
+                    const analysisReport = JSON.parse(analysisText);
+                    
+                    logSpectral('Gemini API analysis completed successfully');
+                    completeAnalysis(analysisReport);
+                } else {
+                    throw new Error('Invalid API response format');
+                }
+                
+            } catch (error) {
+                logSpectral(`API Error: ${error.message}`);
+                handleAPIError(error, transcript);
+            }
+        }
+        
+        function handleAPIError(error, transcript) {
+            appState.evp.error = error.message;
+            
+            // Update UI to show error
+            const status = document.getElementById('analysisStatus');
+            status.textContent = 'SPECTRAL INTERFERENCE DETECTED - USING BACKUP ANALYSIS';
+            status.className = 'text-shock-orange font-mono text-sm';
+            
+            // Fall back to mock analysis
+            logSpectral('Falling back to mock analysis due to API error');
+            setTimeout(() => {
+                generateMockAnalysis(transcript);
+            }, 2000);
+        }
+        
+        // Analysis Report Display System
+        function displayAnalysisReport(report) {
+            const reportSection = document.getElementById('analysisReportSection');
+            const reportContent = document.getElementById('analysisReportContent');
+            
+            // Generate report timestamp
+            const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            
+            // Format the report content
+            const formattedReport = `KIROWEEN SPECTRAL ANALYSIS DIVISION
+EVP INVESTIGATION REPORT
+Generated: ${timestamp} UTC
+
+TRANSCRIPT ANALYZED:
+"${appState.evp.transcript}"
+
+ANALYSIS RESULTS:
+================
+
+CLASSIFICATION: ${report.classification}
+EMOTIONAL VALENCE: ${report.valence}
+PHONETIC ANOMALIES: ${report.phoneticAnomalies}
+SUGGESTED MEANING: ${report.suggestedMeaning}
+
+ANALYST NOTES:
+This EVP sample has been processed through our advanced spectral 
+analysis algorithms. Classification is based on audio clarity, 
+phonetic structure, and paranormal activity indicators.
+
+RECOMMENDATION:
+Further investigation recommended. Maintain safe distance from 
+manifestation source. Document any additional phenomena.
+
+END REPORT
+================
+SPEC-TAPE ANALYSIS SYSTEM v1.0`;
+            
+            reportContent.textContent = formattedReport;
+            
+            // Show the report section
+            reportSection.classList.remove('hidden');
+            
+            // Initialize report controls
+            initializeReportControls();
+            
+            // Scroll to report
+            reportSection.scrollIntoView({ behavior: 'smooth' });
+            
+            logSpectral('Analysis report displayed');
+        }
+        
+        function initializeReportControls() {
+            // Remove existing event listeners to prevent duplicates
+            const transmitBtn = document.getElementById('transmitReportBtn');
+            const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+            
+            transmitBtn.replaceWith(transmitBtn.cloneNode(true));
+            newAnalysisBtn.replaceWith(newAnalysisBtn.cloneNode(true));
+            
+            // Add fresh event listeners
+            document.getElementById('transmitReportBtn').addEventListener('click', transmitReport);
+            document.getElementById('newAnalysisBtn').addEventListener('click', startNewAnalysis);
+        }
+        
+        async function transmitReport() {
+            const reportContent = document.getElementById('analysisReportContent').textContent;
+            
+            try {
+                // Try to use the modern Clipboard API
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(reportContent);
+                    showTransmissionSuccess();
+                    logSpectral('Report transmitted to clipboard via Clipboard API');
+                } else {
+                    // Fallback for older browsers
+                    fallbackCopyToClipboard(reportContent);
+                }
+            } catch (error) {
+                logSpectral(`Clipboard error: ${error.message}`);
+                showTransmissionError();
+            }
+        }
+        
+        function fallbackCopyToClipboard(text) {
+            // Create a temporary textarea element
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            
+            try {
+                textArea.focus();
+                textArea.select();
+                const successful = document.execCommand('copy');
+                
+                if (successful) {
+                    showTransmissionSuccess();
+                    logSpectral('Report transmitted to clipboard via fallback method');
+                } else {
+                    throw new Error('Copy command failed');
+                }
+            } catch (error) {
+                logSpectral(`Fallback clipboard error: ${error.message}`);
+                showTransmissionError();
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+        
+        function showTransmissionSuccess() {
+            const status = document.getElementById('transmissionStatus');
+            const statusText = status.querySelector('div div');
+            
+            statusText.textContent = 'REPORT TRANSMITTED TO CLIPBOARD';
+            statusText.className = 'text-radioactive-green font-mono text-sm neon-glow';
+            status.querySelector('div').className = 'bg-black rounded p-2 border border-radioactive-green';
+            
+            status.classList.remove('hidden');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 3000);
+        }
+        
+        function showTransmissionError() {
+            const status = document.getElementById('transmissionStatus');
+            const statusText = status.querySelector('div div');
+            
+            statusText.textContent = 'TRANSMISSION FAILED - CLIPBOARD ACCESS DENIED';
+            statusText.className = 'text-red-400 font-mono text-sm';
+            status.querySelector('div').className = 'bg-black rounded p-2 border border-red-400';
+            
+            status.classList.remove('hidden');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function startNewAnalysis() {
+            // Clear current analysis
+            clearEVPInput();
+            
+            // Hide report section
+            document.getElementById('analysisReportSection').classList.add('hidden');
+            
+            // Scroll back to input
+            document.getElementById('evpTranscript').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('evpTranscript').focus();
+            
+            logSpectral('Started new EVP analysis session');
+        }
+        
+        // Mixtape Sharing System
+        function initializeSharingSystem() {
+            // Share buttons
+            document.getElementById('shareTracklistBtn').addEventListener('click', shareTracklist);
+            document.getElementById('shareMixtapeDataBtn').addEventListener('click', shareMixtapeData);
+            document.getElementById('generateShareLinkBtn').addEventListener('click', generateShareLink);
+            document.getElementById('importDataBtn').addEventListener('click', showImportModal);
+            
+            // Import modal buttons
+            document.getElementById('confirmImportBtn').addEventListener('click', confirmImport);
+            document.getElementById('cancelImportBtn').addEventListener('click', hideImportModal);
+            
+            // Close modal on outside click
+            document.getElementById('importModal').addEventListener('click', (e) => {
+                if (e.target.id === 'importModal') {
+                    hideImportModal();
+                }
+            });
+            
+            logSpectral('Sharing system initialized');
+        }
+        
+        async function shareTracklist() {
+            const tracklist = generateTracklistText();
+            
+            try {
+                await copyToClipboard(tracklist);
+                showShareSuccess('TRACKLIST COPIED TO CLIPBOARD');
+                logSpectral('Tracklist shared successfully');
+            } catch (error) {
+                showShareError('Failed to copy tracklist');
+                logSpectral(`Tracklist share error: ${error.message}`);
+            }
+        }
+        
+        async function shareMixtapeData() {
+            const mixtapeData = generateMixtapeDataText();
+            
+            try {
+                await copyToClipboard(mixtapeData);
+                showShareSuccess('MIXTAPE DATA EXPORTED TO CLIPBOARD');
+                logSpectral('Mixtape data exported successfully');
+            } catch (error) {
+                showShareError('Failed to export mixtape data');
+                logSpectral(`Mixtape export error: ${error.message}`);
+            }
+        }
+        
+        async function generateShareLink() {
+            const shareableData = generateShareableData();
+            const encodedData = btoa(JSON.stringify(shareableData));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?mixtape=${encodedData}`;
+            
+            try {
+                await copyToClipboard(shareUrl);
+                showShareSuccess('SHARE LINK GENERATED & COPIED');
+                logSpectral('Share link generated successfully');
+            } catch (error) {
+                showShareError('Failed to generate share link');
+                logSpectral(`Share link error: ${error.message}`);
+            }
+        }
+        
+        function generateTracklistText() {
+            const title = appState.mixtape.title || 'Untitled Mixtape';
+            const timestamp = new Date().toLocaleDateString();
+            
+            let tracklist = `🎵 SPEC-TAPE MIXTAPE 🎵
+${title.toUpperCase()}
+Created: ${timestamp}
+
+`;
+            
+            // Side A
+            if (appState.mixtape.sideA.length > 0) {
+                tracklist += `◄ SIDE A ►\n`;
+                appState.mixtape.sideA.forEach((track, index) => {
+                    tracklist += `${String(index + 1).padStart(2, '0')}. ${track.name} (${track.duration})\n`;
+                });
+                tracklist += `Total Duration: ${calculateSideDuration('A')}\n\n`;
+            }
+            
+            // Side B
+            if (appState.mixtape.sideB.length > 0) {
+                tracklist += `◄ SIDE B ►\n`;
+                appState.mixtape.sideB.forEach((track, index) => {
+                    tracklist += `${String(index + 1).padStart(2, '0')}. ${track.name} (${track.duration})\n`;
+                });
+                tracklist += `Total Duration: ${calculateSideDuration('B')}\n\n`;
+            }
+            
+            tracklist += `Created with SPEC-TAPE Audio Companion
+Kiroween Paranormal Investigation Division`;
+            
+            return tracklist;
+        }
+        
+        function generateMixtapeDataText() {
+            const exportData = {
+                title: appState.mixtape.title,
+                sideA: appState.mixtape.sideA,
+                sideB: appState.mixtape.sideB,
+                created: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            return `SPEC-TAPE MIXTAPE DATA EXPORT
+================================
+
+${JSON.stringify(exportData, null, 2)}
+
+================================
+Import this data into SPEC-TAPE to restore your mixtape.
+Created with SPEC-TAPE Audio Companion v1.0`;
+        }
+        
+        function generateShareableData() {
+            return {
+                title: appState.mixtape.title,
+                sideA: appState.mixtape.sideA,
+                sideB: appState.mixtape.sideB,
+                shared: new Date().toISOString()
+            };
+        }
+        
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                
+                try {
+                    textArea.focus();
+                    textArea.select();
+                    const successful = document.execCommand('copy');
+                    if (!successful) {
+                        throw new Error('Copy command failed');
+                    }
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        }
+        
+        function showShareSuccess(message) {
+            const status = document.getElementById('shareStatus');
+            const statusText = status.querySelector('div div');
+            
+            statusText.textContent = message;
+            statusText.className = 'text-radioactive-green font-mono text-xs neon-glow';
+            status.querySelector('div').className = 'bg-black rounded p-2 border border-radioactive-green';
+            
+            status.classList.remove('hidden');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 3000);
+        }
+        
+        function showShareError(message) {
+            const status = document.getElementById('shareStatus');
+            const statusText = status.querySelector('div div');
+            
+            statusText.textContent = message;
+            statusText.className = 'text-red-400 font-mono text-xs';
+            status.querySelector('div').className = 'bg-black rounded p-2 border border-red-400';
+            
+            status.classList.remove('hidden');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // URL Parameter Loading System
+        function loadMixtapeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mixtapeParam = urlParams.get('mixtape');
+            
+            if (mixtapeParam) {
+                try {
+                    const decodedData = atob(mixtapeParam);
+                    const mixtapeData = JSON.parse(decodedData);
+                    
+                    // Load the shared mixtape
+                    appState.mixtape.title = mixtapeData.title || '';
+                    appState.mixtape.sideA = mixtapeData.sideA || [];
+                    appState.mixtape.sideB = mixtapeData.sideB || [];
+                    
+                    // Update UI
+                    document.getElementById('mixtapeTitle').value = appState.mixtape.title;
+                    document.getElementById('titleCharCount').textContent = appState.mixtape.title.length;
+                    renderTracks('A');
+                    renderTracks('B');
+                    updateTrackCounts();
+                    updateDisplay();
+                    
+                    // Save to session
+                    saveMixtapeToSession();
+                    
+                    logSpectral('Mixtape loaded from share link');
+                    
+                    // Show success message
+                    showShareSuccess('SHARED MIXTAPE LOADED SUCCESSFULLY');
+                    
+                    // Clean up URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    return true;
+                } catch (error) {
+                    logSpectral(`Failed to load shared mixtape: ${error.message}`);
+                    showShareError('INVALID SHARE LINK');
+                }
+            }
+            
+            return false;
+        }
+        
+        // Import Modal Functions
+        function showImportModal() {
+            document.getElementById('importModal').classList.remove('hidden');
+            document.getElementById('importDataInput').focus();
+            logSpectral('Import modal opened');
+        }
+        
+        function hideImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+            document.getElementById('importDataInput').value = '';
+            logSpectral('Import modal closed');
+        }
+        
+        function confirmImport() {
+            const importData = document.getElementById('importDataInput').value.trim();
+            
+            if (!importData) {
+                showShareError('NO DATA PROVIDED FOR IMPORT');
+                return;
+            }
+            
+            try {
+                // Try to parse as JSON first (exported data format)
+                let mixtapeData;
+                
+                if (importData.includes('SPEC-TAPE MIXTAPE DATA EXPORT')) {
+                    // Extract JSON from export format
+                    const jsonStart = importData.indexOf('{');
+                    const jsonEnd = importData.lastIndexOf('}') + 1;
+                    const jsonStr = importData.substring(jsonStart, jsonEnd);
+                    mixtapeData = JSON.parse(jsonStr);
+                } else {
+                    // Try direct JSON parse
+                    mixtapeData = JSON.parse(importData);
+                }
+                
+                // Validate the data structure
+                if (!mixtapeData || typeof mixtapeData !== 'object') {
+                    throw new Error('Invalid data format');
+                }
+                
+                // Import the mixtape
+                appState.mixtape.title = mixtapeData.title || '';
+                appState.mixtape.sideA = Array.isArray(mixtapeData.sideA) ? mixtapeData.sideA : [];
+                appState.mixtape.sideB = Array.isArray(mixtapeData.sideB) ? mixtapeData.sideB : [];
+                
+                // Update UI
+                document.getElementById('mixtapeTitle').value = appState.mixtape.title;
+                document.getElementById('titleCharCount').textContent = appState.mixtape.title.length;
+                renderTracks('A');
+                renderTracks('B');
+                updateTrackCounts();
+                updateDisplay();
+                
+                // Save to session
+                saveMixtapeToSession();
+                
+                // Close modal and show success
+                hideImportModal();
+                showShareSuccess('MIXTAPE DATA IMPORTED SUCCESSFULLY');
+                
+                logSpectral('Mixtape imported successfully');
+                
+            } catch (error) {
+                logSpectral(`Import error: ${error.message}`);
+                showShareError('INVALID MIXTAPE DATA FORMAT');
+            }
+        }
+        
+        // Mixtape Editor Functions
+        function initializeMixtapeEditor() {
+            // Title input event listener
+            const titleInput = document.getElementById('mixtapeTitle');
+            titleInput.addEventListener('input', handleTitleInput);
+            
+            // Add track buttons
+            document.getElementById('addTrackA').addEventListener('click', () => addTrack('A'));
+            document.getElementById('addTrackB').addEventListener('click', () => addTrack('B'));
+            
+            // Mixtape action buttons
+            document.getElementById('clearMixtape').addEventListener('click', clearMixtape);
+            document.getElementById('randomizeTracks').addEventListener('click', randomizeTracks);
+            
+            // Initialize with empty tracks
+            updateTrackCounts();
+            
+            logSpectral('Mixtape editor initialized');
+        }
+        
+        function handleTitleInput(event) {
+            const title = event.target.value;
+            const charCount = title.length;
+            
+            // Update character count
+            document.getElementById('titleCharCount').textContent = charCount;
+            
+            // Validate printable characters only
+            const sanitizedTitle = title.replace(/[^\x20-\x7E]/g, '');
+            if (sanitizedTitle !== title) {
+                event.target.value = sanitizedTitle;
+                logSpectral('Invalid characters removed from title');
+            }
+            
+            // Update app state and display
+            appState.mixtape.title = sanitizedTitle;
+            updateDisplay();
+            
+            logSpectral(`Title updated: "${sanitizedTitle}"`);
+        }
+        
+        function addTrack(side) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            // Check if we can add more tracks (max 10 per side)
+            if (sideData.length >= 10) {
+                logSpectral(`Cannot add more tracks to Side ${side} (max 10)`);
+                return;
+            }
+            
+            // Add new track to state
+            const trackNumber = sideData.length + 1;
+            const newTrack = {
+                name: `Track ${trackNumber}`,
+                duration: generateRandomDuration()
+            };
+            
+            sideData.push(newTrack);
+            
+            // Update UI
+            renderTracks(side);
+            updateTrackCounts();
+            updateDisplay();
+            saveMixtapeToSession();
+            
+            logSpectral(`Added track to Side ${side}: "${newTrack.name}"`);
+        }
+        
+        function removeTrack(side, index) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (index >= 0 && index < sideData.length) {
+                const removedTrack = sideData.splice(index, 1)[0];
+                
+                // Update UI
+                renderTracks(side);
+                updateTrackCounts();
+                updateDisplay();
+                saveMixtapeToSession();
+                
+                logSpectral(`Removed track from Side ${side}: "${removedTrack.name}"`);
+            }
+        }
+        
+        function renderTracks(side) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            const container = document.getElementById(`side${side}Editor`);
+            
+            // Clear existing tracks
+            container.innerHTML = '';
+            
+            // Render each track
+            sideData.forEach((track, index) => {
+                const trackElement = createTrackElement(side, index, track);
+                container.appendChild(trackElement);
+            });
+        }
+        
+        function createTrackElement(side, index, track) {
+            const trackDiv = document.createElement('div');
+            trackDiv.className = 'track-container rounded p-2';
+            
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            const canMoveUp = index > 0;
+            const canMoveDown = index < sideData.length - 1;
+            const canDuplicate = sideData.length < 10;
+            
+            trackDiv.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <div class="track-number w-8 h-8 rounded flex items-center justify-center text-xs font-mono">
+                        ${String(index + 1).padStart(2, '0')}
+                    </div>
+                    <input 
+                        type="text" 
+                        class="track-input flex-1 px-2 py-1 rounded text-sm"
+                        value="${track.name}"
+                        placeholder="Enter track name..."
+                        maxlength="40"
+                        data-side="${side}"
+                        data-index="${index}"
+                    >
+                    <div class="text-xs font-mono text-gray-400 w-12 text-center">
+                        ${track.duration}
+                    </div>
+                    <div class="flex space-x-1">
+                        <button 
+                            class="w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white hover:bg-gray-500 ${!canMoveUp ? 'opacity-30 cursor-not-allowed' : ''}"
+                            onclick="moveTrackUp('${side}', ${index})"
+                            title="Move up"
+                            ${!canMoveUp ? 'disabled' : ''}
+                        >
+                            ↑
+                        </button>
+                        <button 
+                            class="w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white hover:bg-gray-500 ${!canMoveDown ? 'opacity-30 cursor-not-allowed' : ''}"
+                            onclick="moveTrackDown('${side}', ${index})"
+                            title="Move down"
+                            ${!canMoveDown ? 'disabled' : ''}
+                        >
+                            ↓
+                        </button>
+                        <button 
+                            class="w-5 h-5 rounded text-xs font-bold bg-blue-600 text-white hover:bg-blue-500 ${!canDuplicate ? 'opacity-30 cursor-not-allowed' : ''}"
+                            onclick="duplicateTrack('${side}', ${index})"
+                            title="Duplicate track"
+                            ${!canDuplicate ? 'disabled' : ''}
+                        >
+                            ⧉
+                        </button>
+                        <button 
+                            class="remove-track w-5 h-5 rounded text-xs font-bold"
+                            onclick="removeTrack('${side}', ${index})"
+                            title="Remove track"
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listener for track name input
+            const input = trackDiv.querySelector('.track-input');
+            input.addEventListener('input', (e) => handleTrackNameInput(e, side, index));
+            
+            return trackDiv;
+        }
+        
+        function handleTrackNameInput(event, side, index) {
+            const trackName = event.target.value;
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            // Validate printable characters only
+            const sanitizedName = trackName.replace(/[^\x20-\x7E]/g, '');
+            if (sanitizedName !== trackName) {
+                event.target.value = sanitizedName;
+                logSpectral('Invalid characters removed from track name');
+            }
+            
+            // Update track name in state
+            if (sideData[index]) {
+                sideData[index].name = sanitizedName;
+                logSpectral(`Updated track ${index + 1} on Side ${side}: "${sanitizedName}"`);
+                
+                // Auto-save after a delay
+                setTimeout(saveMixtapeToSession, 1000);
+            }
+        }
+        
+        function updateTrackCounts() {
+            // Update track counts
+            document.getElementById('sideACount').textContent = appState.mixtape.sideA.length;
+            document.getElementById('sideBCount').textContent = appState.mixtape.sideB.length;
+            
+            // Update durations
+            document.getElementById('sideADuration').textContent = calculateSideDuration('A');
+            document.getElementById('sideBDuration').textContent = calculateSideDuration('B');
+            
+            // Update add button states
+            const addButtonA = document.getElementById('addTrackA');
+            const addButtonB = document.getElementById('addTrackB');
+            
+            if (appState.mixtape.sideA.length >= 10) {
+                addButtonA.disabled = true;
+                addButtonA.textContent = 'SIDE A FULL (10/10)';
+                addButtonA.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                addButtonA.disabled = false;
+                addButtonA.textContent = '+ ADD TRACK TO SIDE A';
+                addButtonA.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            if (appState.mixtape.sideB.length >= 10) {
+                addButtonB.disabled = true;
+                addButtonB.textContent = 'SIDE B FULL (10/10)';
+                addButtonB.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                addButtonB.disabled = false;
+                addButtonB.textContent = '+ ADD TRACK TO SIDE B';
+                addButtonB.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        function clearMixtape() {
+            if (confirm('Are you sure you want to clear all tracks and title?')) {
+                // Clear state
+                appState.mixtape.title = '';
+                appState.mixtape.sideA = [];
+                appState.mixtape.sideB = [];
+                
+                // Clear UI
+                document.getElementById('mixtapeTitle').value = '';
+                document.getElementById('titleCharCount').textContent = '0';
+                renderTracks('A');
+                renderTracks('B');
+                updateTrackCounts();
+                updateDisplay();
+                
+                logSpectral('Mixtape cleared');
+            }
+        }
+        
+        function randomizeTracks() {
+            // Expanded track library organized by audio type for unique sounds
+            const trackLibrary = {
+                ambient: [
+                    'Ethereal Echoes', 'Mystic Melodies', 'Celestial Drift', 'Void Whispers',
+                    'Astral Wandering', 'Cosmic Lullaby', 'Nebula Dreams', 'Starlight Serenade',
+                    'Infinite Expanse', 'Lunar Meditation', 'Solar Winds', 'Deep Space Hymn'
+                ],
+                spectral: [
+                    'Spectral Whispers', 'Digital Phantoms', 'Phantom Frequencies', 'Ghostly Grooves',
+                    'Haunted Frequencies', 'Supernatural Synth', 'Eerie Electronics', 'Cryptic Signals',
+                    'Poltergeist Pulse', 'Wraith Waves', 'Banshee Broadcast', 'Spirit Static'
+                ],
+                rhythmic: [
+                    'Paranormal Pulse', 'Midnight Manifestation', 'Spectral Beats', 'Phantom Rhythm',
+                    'Ghostly Percussion', 'Haunted Heartbeat', 'Supernatural Stomp', 'Eerie Engine',
+                    'Cryptic Cadence', 'Otherworldly Drums', 'Spooky Syncopation', 'Mystic Metronome'
+                ],
+                drone: [
+                    'Static Dreams', 'Void Transmission', 'Endless Hum', 'Spectral Sustain',
+                    'Phantom Frequency', 'Ethereal Drone', 'Cosmic Background', 'Deep Resonance',
+                    'Infinite Tone', 'Astral Buzz', 'Dimensional Hum', 'Quantum Static'
+                ],
+                whispers: [
+                    'Neon Nightmares', 'Cassette Ghosts', 'Retro Revenant', 'Spooky Soundwaves',
+                    'Otherworldly Oscillations', 'Haunted Voices', 'Spectral Speech', 'Phantom Phonemes',
+                    'Ghostly Gossip', 'Eerie Utterances', 'Cryptic Conversations', 'Mystic Murmurs'
+                ]
+            };
+            
+            // Clear existing tracks
+            appState.mixtape.sideA = [];
+            appState.mixtape.sideB = [];
+            
+            // Create a pool of all available tracks
+            const allTracks = [];
+            Object.keys(trackLibrary).forEach(type => {
+                trackLibrary[type].forEach(trackName => {
+                    allTracks.push({ name: trackName, type: type });
+                });
+            });
+            
+            // Shuffle the track pool to ensure randomness
+            const shuffledTracks = shuffleArray([...allTracks]);
+            
+            // Generate tracks for both sides
+            const tracksPerSide = Math.floor(Math.random() * 6) + 3; // 3-8 tracks per side
+            const totalTracksNeeded = tracksPerSide * 2;
+            
+            // Ensure we have enough unique tracks
+            const selectedTracks = shuffledTracks.slice(0, Math.min(totalTracksNeeded, shuffledTracks.length));
+            
+            // Distribute tracks between sides
+            for (let i = 0; i < tracksPerSide && i < selectedTracks.length; i++) {
+                const track = selectedTracks[i];
+                appState.mixtape.sideA.push({
+                    name: track.name,
+                    duration: generateRandomDuration(),
+                    audioType: track.type // Store the audio type for consistent sound
+                });
+            }
+            
+            for (let i = tracksPerSide; i < totalTracksNeeded && i < selectedTracks.length; i++) {
+                const track = selectedTracks[i];
+                appState.mixtape.sideB.push({
+                    name: track.name,
+                    duration: generateRandomDuration(),
+                    audioType: track.type // Store the audio type for consistent sound
+                });
+            }
+            
+            // Update title if empty
+            if (!appState.mixtape.title) {
+                const randomTitles = [
+                    'Kiroween Spectral Mix', 'Paranormal Playlist Vol. 1',
+                    'Haunted Hits Collection', 'Ghostly Grooves Compilation',
+                    'Supernatural Soundscape', 'Eerie Audio Archive',
+                    'Phantom Frequencies Mix', 'Spectral Sessions Vol. 1',
+                    'Otherworldly Oscillations', 'Cryptic Compilation',
+                    'Mystic Mixtape Madness', 'Digital Séance Sounds'
+                ];
+                appState.mixtape.title = randomTitles[Math.floor(Math.random() * randomTitles.length)];
+                document.getElementById('mixtapeTitle').value = appState.mixtape.title;
+                document.getElementById('titleCharCount').textContent = appState.mixtape.title.length;
+            }
+            
+            // Update UI
+            renderTracks('A');
+            renderTracks('B');
+            updateTrackCounts();
+            updateDisplay();
+            
+            logSpectral(`Mixtape randomized with ${selectedTracks.length} unique spectral tracks`);
+        }
+        
+        // Utility function to shuffle an array
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        // Audio Playback System
+        function playCurrentTrack() {
+            if (!audioInitialized) {
+                initializeAudio();
+                return;
+            }
+            
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (currentSideData.length === 0) {
+                logSpectral('No tracks available to play');
+                return;
+            }
+            
+            const currentTrack = currentSideData[appState.player.currentTrack];
+            if (!currentTrack) {
+                logSpectral('Invalid track index');
+                return;
+            }
+            
+            // Stop any currently playing audio
+            stopCurrentTrack();
+            
+            // Determine audio type based on track name and stored data
+            const audioType = determineAudioType(currentTrack.name, currentTrack);
+            const generator = audioGenerators[audioType];
+            
+            if (generator) {
+                currentAudioTrack = {
+                    generator: generator,
+                    track: currentTrack,
+                    startTime: Tone.now()
+                };
+                
+                // Start playing the generated audio
+                playGeneratedAudio(generator, currentTrack);
+                
+                logSpectral(`Playing: "${currentTrack.name}" (${audioType} type)`);
+            }
+        }
+        
+        function stopCurrentTrack() {
+            if (currentAudioTrack) {
+                const generator = currentAudioTrack.generator;
+                
+                // Stop all possible audio sources
+                if (generator.synth) {
+                    generator.synth.triggerRelease();
+                }
+                if (generator.noise) {
+                    generator.noise.stop();
+                }
+                if (generator.envelope) {
+                    generator.envelope.triggerRelease();
+                }
+                
+                currentAudioTrack = null;
+                logSpectral('Audio stopped');
+            }
+        }
+        
+        function determineAudioType(trackName, trackData = null) {
+            // If track data has a stored audio type, use that for consistency
+            if (trackData && trackData.audioType) {
+                return trackData.audioType;
+            }
+            
+            // Otherwise, determine from track name
+            const name = trackName.toLowerCase();
+            
+            if (name.includes('whisper') || name.includes('voice') || name.includes('evp') || 
+                name.includes('murmur') || name.includes('utterance') || name.includes('gossip')) {
+                return 'whispers';
+            } else if (name.includes('spectral') || name.includes('ghost') || name.includes('phantom') || 
+                       name.includes('haunted') || name.includes('supernatural') || name.includes('eerie') ||
+                       name.includes('poltergeist') || name.includes('wraith') || name.includes('banshee')) {
+                return 'spectral';
+            } else if (name.includes('pulse') || name.includes('beat') || name.includes('rhythm') || 
+                       name.includes('percussion') || name.includes('drum') || name.includes('cadence') ||
+                       name.includes('heartbeat') || name.includes('stomp') || name.includes('syncopation')) {
+                return 'rhythmic';
+            } else if (name.includes('drone') || name.includes('hum') || name.includes('static') || 
+                       name.includes('sustain') || name.includes('buzz') || name.includes('transmission') ||
+                       name.includes('resonance') || name.includes('tone') || name.includes('frequency')) {
+                return 'drone';
+            } else if (name.includes('echo') || name.includes('melody') || name.includes('drift') || 
+                       name.includes('celestial') || name.includes('astral') || name.includes('cosmic') ||
+                       name.includes('nebula') || name.includes('lunar') || name.includes('solar')) {
+                return 'ambient';
+            } else {
+                return 'ambient'; // Default fallback
+            }
+        }
+        
+        function playGeneratedAudio(generator, track) {
+            const audioType = generator.type;
+            const duration = parseDuration(track.duration);
+            
+            switch (audioType) {
+                case 'ambient':
+                    playAmbientTrack(generator, duration);
+                    break;
+                case 'spectral':
+                    playSpectralTrack(generator, duration);
+                    break;
+                case 'rhythmic':
+                    playRhythmicTrack(generator, duration);
+                    break;
+                case 'drone':
+                    playDroneTrack(generator, duration);
+                    break;
+                case 'whispers':
+                    playWhispersTrack(generator, duration);
+                    break;
+            }
+        }
+        
+        function parseDuration(durationStr) {
+            const [minutes, seconds] = durationStr.split(':').map(Number);
+            return (minutes * 60) + seconds;
+        }
+        
+        function playAmbientTrack(generator, duration) {
+            const notes = ['C2', 'Eb2', 'F2', 'G2', 'Bb2', 'C3'];
+            let noteIndex = 0;
+            
+            const playNote = () => {
+                if (currentAudioTrack) {
+                    const note = notes[noteIndex % notes.length];
+                    generator.synth.triggerAttackRelease(note, "2n");
+                    noteIndex++;
+                    
+                    // Schedule next note
+                    setTimeout(playNote, Math.random() * 3000 + 2000);
+                }
+            };
+            
+            playNote();
+            
+            // Stop after duration
+            setTimeout(() => {
+                if (currentAudioTrack && currentAudioTrack.generator === generator) {
+                    stopCurrentTrack();
+                    advanceToNextTrack();
+                }
+            }, duration * 1000);
+        }
+        
+        function playSpectralTrack(generator, duration) {
+            const notes = ['C4', 'D#4', 'F#4', 'A4', 'C5'];
+            let playing = true;
+            
+            const playGlitch = () => {
+                if (currentAudioTrack && playing) {
+                    const note = notes[Math.floor(Math.random() * notes.length)];
+                    const glitchDuration = Math.random() * 0.3 + 0.1;
+                    
+                    generator.synth.triggerAttackRelease(note, glitchDuration);
+                    
+                    // Random delay between glitches
+                    setTimeout(playGlitch, Math.random() * 1500 + 500);
+                }
+            };
+            
+            playGlitch();
+            
+            setTimeout(() => {
+                playing = false;
+                if (currentAudioTrack && currentAudioTrack.generator === generator) {
+                    stopCurrentTrack();
+                    advanceToNextTrack();
+                }
+            }, duration * 1000);
+        }
+        
+        function playRhythmicTrack(generator, duration) {
+            const pattern = [1, 0, 1, 0, 1, 1, 0, 1];
+            let patternIndex = 0;
+            let playing = true;
+            
+            const playBeat = () => {
+                if (currentAudioTrack && playing) {
+                    if (pattern[patternIndex % pattern.length]) {
+                        generator.synth.triggerAttackRelease('C1', '8n');
+                    }
+                    patternIndex++;
+                    
+                    setTimeout(playBeat, 250); // 240 BPM
+                }
+            };
+            
+            playBeat();
+            
+            setTimeout(() => {
+                playing = false;
+                if (currentAudioTrack && currentAudioTrack.generator === generator) {
+                    stopCurrentTrack();
+                    advanceToNextTrack();
+                }
+            }, duration * 1000);
+        }
+        
+        function playDroneTrack(generator, duration) {
+            const baseNote = 'C1';
+            generator.synth.triggerAttack(baseNote);
+            
+            // Add subtle frequency modulation
+            let modulation = 0;
+            const modulateFreq = () => {
+                if (currentAudioTrack) {
+                    modulation += 0.1;
+                    const freq = Tone.Frequency(baseNote).toFrequency() + Math.sin(modulation) * 5;
+                    generator.synth.frequency.setValueAtTime(freq, Tone.now());
+                    
+                    setTimeout(modulateFreq, 100);
+                }
+            };
+            
+            modulateFreq();
+            
+            setTimeout(() => {
+                if (currentAudioTrack && currentAudioTrack.generator === generator) {
+                    generator.synth.triggerRelease();
+                    setTimeout(() => {
+                        stopCurrentTrack();
+                        advanceToNextTrack();
+                    }, 2000); // Fade out time
+                }
+            }, duration * 1000);
+        }
+        
+        function playWhispersTrack(generator, duration) {
+            generator.noise.start();
+            
+            let playing = true;
+            const triggerWhisper = () => {
+                if (currentAudioTrack && playing) {
+                    generator.envelope.triggerAttackRelease('2n');
+                    
+                    // Random intervals for whispers
+                    setTimeout(triggerWhisper, Math.random() * 4000 + 1000);
+                }
+            };
+            
+            triggerWhisper();
+            
+            setTimeout(() => {
+                playing = false;
+                if (currentAudioTrack && currentAudioTrack.generator === generator) {
+                    generator.noise.stop();
+                    stopCurrentTrack();
+                    advanceToNextTrack();
+                }
+            }, duration * 1000);
+        }
+        
+        function advanceToNextTrack() {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (appState.player.isPlaying && currentSideData.length > 0) {
+                // Crossfade to next track
+                crossfadeToNextTrack();
+            }
+        }
+        
+        function crossfadeToNextTrack() {
+            const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            // Fade out current track
+            if (currentAudioTrack && currentAudioTrack.generator.synth) {
+                const currentSynth = currentAudioTrack.generator.synth;
+                currentSynth.volume.rampTo(Tone.gainToDb(0.01), 0.5);
+            }
+            
+            // Advance to next track
+            appState.player.currentTrack = (appState.player.currentTrack + 1) % currentSideData.length;
+            updateDisplay();
+            
+            // Start next track after crossfade
+            setTimeout(() => {
+                if (appState.player.isPlaying) {
+                    stopCurrentTrack(); // Clean stop of previous
+                    playCurrentTrack(); // Start new track
+                    
+                    // Fade in new track
+                    if (currentAudioTrack && currentAudioTrack.generator.synth) {
+                        const newSynth = currentAudioTrack.generator.synth;
+                        newSynth.volume.value = Tone.gainToDb(0.01);
+                        newSynth.volume.rampTo(Tone.gainToDb(appState.player.volume * 0.8), 0.5);
+                    }
+                }
+            }, 500);
+        }
+        
+        // Audio Visualization System
+        let visualizationInterval;
+        let audioAnalyzer;
+        
+        function startAudioVisualization() {
+            if (!audioInitialized) return;
+            
+            // Create analyzer if it doesn't exist
+            if (!audioAnalyzer) {
+                audioAnalyzer = new Tone.Analyser('waveform', 32);
+                Tone.getDestination().connect(audioAnalyzer);
+            }
+            
+            // Start visualization loop
+            visualizationInterval = setInterval(updateAudioVisualization, 100);
+        }
+        
+        function stopAudioVisualization() {
+            if (visualizationInterval) {
+                clearInterval(visualizationInterval);
+                visualizationInterval = null;
+            }
+            
+            // Reset visualization
+            resetAudioVisualization();
+        }
+        
+        function updateAudioVisualization() {
+            if (!audioAnalyzer) return;
+            
+            try {
+                const waveform = audioAnalyzer.getValue();
+                const averageLevel = calculateAverageLevel(waveform);
+                
+                // Update tape spool glow based on audio level
+                updateSpoolGlow(averageLevel);
+                
+                // Update progress bar color intensity
+                updateProgressBarIntensity(averageLevel);
+                
+            } catch (error) {
+                // Silently handle analyzer errors
+            }
+        }
+        
+        function calculateAverageLevel(waveform) {
+            if (!Array.isArray(waveform)) return 0;
+            
+            const sum = waveform.reduce((acc, val) => acc + Math.abs(val), 0);
+            return sum / waveform.length;
+        }
+        
+        function updateSpoolGlow(level) {
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            
+            if (leftSpool && rightSpool) {
+                const glowIntensity = Math.min(level * 20, 1); // Scale and clamp
+                const glowColor = `rgba(191, 64, 191, ${glowIntensity})`;
+                
+                leftSpool.style.boxShadow = `0 0 ${10 + glowIntensity * 20}px ${glowColor}`;
+                rightSpool.style.boxShadow = `0 0 ${10 + glowIntensity * 20}px ${glowColor}`;
+            }
+        }
+        
+        function updateProgressBarIntensity(level) {
+            const progressBar = document.querySelector('#tapeProgress > div');
+            
+            if (progressBar) {
+                const intensity = Math.min(level * 10, 1);
+                const baseColor = '#40BF40';
+                const highlightColor = '#BF40BF';
+                
+                // Create dynamic gradient based on audio level
+                progressBar.style.background = `linear-gradient(90deg, ${baseColor}, ${highlightColor})`;
+                progressBar.style.opacity = 0.7 + (intensity * 0.3);
+            }
+        }
+        
+        function resetAudioVisualization() {
+            const leftSpool = document.getElementById('leftSpool');
+            const rightSpool = document.getElementById('rightSpool');
+            const progressBar = document.querySelector('#tapeProgress > div');
+            
+            if (leftSpool) leftSpool.style.boxShadow = '';
+            if (rightSpool) rightSpool.style.boxShadow = '';
+            if (progressBar) {
+                progressBar.style.background = 'linear-gradient(90deg, #40BF40, #BF40BF)';
+                progressBar.style.opacity = '1';
+            }
+        }
+        
+        function generateRandomDuration() {
+            const minutes = Math.floor(Math.random() * 4) + 2; // 2-5 minutes
+            const seconds = Math.floor(Math.random() * 60); // 0-59 seconds
+            return `${minutes}:${String(seconds).padStart(2, '0')}`;
+        }
+        
+        // Session Persistence Functions
+        function saveMixtapeToSession() {
+            try {
+                const mixtapeData = {
+                    title: appState.mixtape.title,
+                    sideA: appState.mixtape.sideA,
+                    sideB: appState.mixtape.sideB,
+                    timestamp: Date.now()
+                };
+                sessionStorage.setItem('spectape_mixtape', JSON.stringify(mixtapeData));
+                logSpectral('Mixtape saved to session');
+            } catch (error) {
+                logSpectral('Failed to save mixtape to session: ' + error.message);
+            }
+        }
+        
+        function loadMixtapeFromSession() {
+            try {
+                const savedData = sessionStorage.getItem('spectape_mixtape');
+                if (savedData) {
+                    const mixtapeData = JSON.parse(savedData);
+                    
+                    // Restore mixtape data
+                    appState.mixtape.title = mixtapeData.title || '';
+                    appState.mixtape.sideA = mixtapeData.sideA || [];
+                    appState.mixtape.sideB = mixtapeData.sideB || [];
+                    
+                    // Update UI
+                    document.getElementById('mixtapeTitle').value = appState.mixtape.title;
+                    document.getElementById('titleCharCount').textContent = appState.mixtape.title.length;
+                    renderTracks('A');
+                    renderTracks('B');
+                    updateTrackCounts();
+                    updateDisplay();
+                    
+                    logSpectral('Mixtape loaded from session');
+                    return true;
+                }
+            } catch (error) {
+                logSpectral('Failed to load mixtape from session: ' + error.message);
+            }
+            return false;
+        }
+        
+        // Auto-save functionality
+        function setupAutoSave() {
+            // Save on title change
+            document.getElementById('mixtapeTitle').addEventListener('input', () => {
+                setTimeout(saveMixtapeToSession, 500); // Debounce save
+            });
+            
+            // Save periodically
+            setInterval(saveMixtapeToSession, 30000); // Save every 30 seconds
+            
+            // Save on page unload
+            window.addEventListener('beforeunload', saveMixtapeToSession);
+        }
+        
+        // Enhanced track management functions
+        function moveTrackUp(side, index) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (index > 0) {
+                // Swap with previous track
+                [sideData[index - 1], sideData[index]] = [sideData[index], sideData[index - 1]];
+                
+                renderTracks(side);
+                updateDisplay();
+                saveMixtapeToSession();
+                
+                logSpectral(`Moved track up on Side ${side}`);
+            }
+        }
+        
+        function moveTrackDown(side, index) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (index < sideData.length - 1) {
+                // Swap with next track
+                [sideData[index], sideData[index + 1]] = [sideData[index + 1], sideData[index]];
+                
+                renderTracks(side);
+                updateDisplay();
+                saveMixtapeToSession();
+                
+                logSpectral(`Moved track down on Side ${side}`);
+            }
+        }
+        
+        function duplicateTrack(side, index) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            
+            if (sideData.length >= 10) {
+                logSpectral(`Cannot duplicate track - Side ${side} is full`);
+                return;
+            }
+            
+            if (index >= 0 && index < sideData.length) {
+                const originalTrack = sideData[index];
+                const duplicatedTrack = {
+                    name: `${originalTrack.name} (Copy)`,
+                    duration: originalTrack.duration
+                };
+                
+                // Insert after the original track
+                sideData.splice(index + 1, 0, duplicatedTrack);
+                
+                renderTracks(side);
+                updateTrackCounts();
+                updateDisplay();
+                saveMixtapeToSession();
+                
+                logSpectral(`Duplicated track on Side ${side}: "${originalTrack.name}"`);
+            }
+        }
+        
+        // Calculate total side duration
+        function calculateSideDuration(side) {
+            const sideData = side === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
+            let totalSeconds = 0;
+            
+            sideData.forEach(track => {
+                const [minutes, seconds] = track.duration.split(':').map(Number);
+                totalSeconds += (minutes * 60) + seconds;
+            });
+            
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const remainingSeconds = totalSeconds % 60;
+            
+            return `${totalMinutes}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+        
+        // Initialize Web Audio API
+        function initializeAudio() {
+            if (!audioInitialized) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audioInitialized = true;
+                    
+                    // Initialize Tone.js
+                    Tone.start();
+                    
+                    // Set initial volume
+                    Tone.getDestination().volume.value = Tone.gainToDb(appState.player.volume);
+                    
+                    // Initialize audio generators
+                    initializeAudioGenerators();
+                    
+                    // Set up audio context monitoring
+                    setupAudioContextMonitoring();
+                    
+                    console.log('Audio Context Initialized');
+                    document.getElementById('audioStatus').textContent = 'READY';
+                    document.getElementById('audioStatus').className = 'text-radioactive-green neon-glow';
+                    
+                    logSpectral('Web Audio API initialized successfully');
+                } catch (error) {
+                    console.warn('Web Audio API not supported:', error);
+                    document.getElementById('audioStatus').textContent = 'ERROR';
+                    document.getElementById('audioStatus').className = 'text-red-400';
+                    logSpectral(`Audio initialization failed: ${error.message}`);
+                }
+            }
+        }
+        
+        // Audio context monitoring
+        function setupAudioContextMonitoring() {
+            // Monitor audio context state changes
+            if (audioContext) {
+                audioContext.addEventListener('statechange', () => {
+                    logSpectral(`Audio context state: ${audioContext.state}`);
+                    
+                    if (audioContext.state === 'suspended') {
+                        document.getElementById('audioStatus').textContent = 'SUSPENDED';
+                        document.getElementById('audioStatus').className = 'text-shock-orange';
+                    } else if (audioContext.state === 'running') {
+                        document.getElementById('audioStatus').textContent = 'READY';
+                        document.getElementById('audioStatus').className = 'text-radioactive-green neon-glow';
+                    }
+                });
+            }
+        }
+        
+        // Audio generation system
+        let currentAudioTrack = null;
+        let audioGenerators = {};
+        
+        function initializeAudioGenerators() {
+            // Create different audio generators for various track types
+            audioGenerators = {
+                ambient: createAmbientGenerator(),
+                spectral: createSpectralGenerator(),
+                rhythmic: createRhythmicGenerator(),
+                drone: createDroneGenerator(),
+                whispers: createWhispersGenerator()
+            };
+            
+            logSpectral('Audio generators initialized');
+        }
+        
+        function createAmbientGenerator() {
+            const reverb = new Tone.Reverb(8).toDestination();
+            const chorus = new Tone.Chorus(4, 2.5, 0.5).connect(reverb);
+            const filter = new Tone.Filter(800, "lowpass").connect(chorus);
+            const compressor = new Tone.Compressor(-30, 3).connect(filter);
+            const synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: { attack: 2, decay: 1, sustain: 0.3, release: 4 }
+            }).connect(compressor);
+            
+            return {
+                synth: synth,
+                filter: filter,
+                reverb: reverb,
+                chorus: chorus,
+                compressor: compressor,
+                type: 'ambient'
+            };
+        }
+        
+        function createSpectralGenerator() {
+            const delay = new Tone.PingPongDelay("8n", 0.3).toDestination();
+            const bitCrusher = new Tone.BitCrusher(4).connect(delay);
+            const distortion = new Tone.Distortion(0.4).connect(bitCrusher);
+            const filter = new Tone.Filter(2000, "bandpass").connect(distortion);
+            const synth = new Tone.MonoSynth({
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 1 }
+            }).connect(filter);
+            
+            return {
+                synth: synth,
+                distortion: distortion,
+                delay: delay,
+                bitCrusher: bitCrusher,
+                filter: filter,
+                type: 'spectral'
+            };
+        }
+        
+        function createRhythmicGenerator() {
+            const compressor = new Tone.Compressor(-30, 3).toDestination();
+            const filter = new Tone.Filter(400, "highpass").connect(compressor);
+            const synth = new Tone.MembraneSynth({
+                pitchDecay: 0.05,
+                octaves: 2,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+            }).connect(filter);
+            
+            return {
+                synth: synth,
+                filter: filter,
+                compressor: compressor,
+                type: 'rhythmic'
+            };
+        }
+        
+        function createDroneGenerator() {
+            const reverb = new Tone.Reverb(12).toDestination();
+            const filter = new Tone.Filter(200, "lowpass").connect(reverb);
+            const synth = new Tone.Synth({
+                oscillator: { type: "triangle" },
+                envelope: { attack: 4, decay: 0, sustain: 1, release: 8 }
+            }).connect(filter);
+            
+            return {
+                synth: synth,
+                filter: filter,
+                reverb: reverb,
+                type: 'drone'
+            };
+        }
+        
+        function createWhispersGenerator() {
+            const reverb = new Tone.Reverb(6).toDestination();
+            const filter = new Tone.Filter(2000, "bandpass").connect(reverb);
+            const noise = new Tone.Noise("pink").connect(filter);
+            const envelope = new Tone.AmplitudeEnvelope({
+                attack: 0.5,
+                decay: 1,
+                sustain: 0.1,
+                release: 2
+            }).connect(filter);
+            noise.connect(envelope);
+            
+            return {
+                noise: noise,
+                envelope: envelope,
+                filter: filter,
+                reverb: reverb,
+                type: 'whispers'
+            };
+        }
+        
+        // Utility function for logging with 90s aesthetic
+        function logSpectral(message) {
+            console.log(`[SPEC-TAPE] ${message}`);
+        }
+        
+        // Browser compatibility checks
+        checkBrowserCompatibility();
+        applyBrowserFixes();
+        
+        // Run diagnostic tests
+        runDiagnosticTests();
+        
+        // Enable Konami code debugging
+        debugKonamiCode();
+        
+        // Final system validation
+        validateSystemIntegration();
+        
+        logSpectral('Core systems loaded. Ready for spectral analysis.');
+    </script>
+</body>
+</html>
