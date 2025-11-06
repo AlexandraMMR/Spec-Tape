@@ -1073,8 +1073,8 @@
             // Volume control
             document.getElementById('volumeSlider').addEventListener('input', handleVolumeChange);
             
-            // Konami code detection
-            document.addEventListener('keydown', handleKonamiInput);
+            // Konami code detection (will be replaced by debug version)
+            // document.addEventListener('keydown', handleKonamiInput);
             
             // EVP Analysis controls
             initializeEVPAnalysis();
@@ -2048,9 +2048,7 @@
         function debugKonamiCode() {
             logSpectral('🐛 Debugging Konami code...');
             
-            // Enhanced keydown handler with debugging - replaces the original
-            document.removeEventListener('keydown', handleKonamiInput);
-            
+            // Enhanced keydown handler with debugging - this is the main handler
             document.addEventListener('keydown', function(event) {
                 const expectedKey = konamiSequence[appState.easterEggs.konamiProgress];
                 const inKonamiSequence = appState.easterEggs.konamiProgress > 0;
