@@ -16,6 +16,7 @@
 - 📋 **Advanced Sharing System** - Multiple export formats and shareable links
 - 🎮 **Hidden Easter Eggs** - Multiple discovery paths with spectacular effects
 - 🎛️ **Professional Audio Controls** - Real-time visualization and crossfading
+- 🎵 **Spotify Playlist Generation** - Convert your mixtape to Spotify-compatible recommendations
 - 📱 **Single-File Architecture** - No dependencies, runs anywhere
 
 ## 🚀 Quick Start
@@ -58,6 +59,23 @@
 - **Volume**: Adjust master audio level
 - **Track Selection**: Click any track to jump to it
 - **Fast Forward/Rewind**: Quick navigation
+
+### 🎵 Spotify Integration
+
+- **Playlist Guide Generation**: Creates detailed Spotify playlist recommendations based on your mixtape
+- **Intelligent Artist Matching**: Analyzes track names and audio types to suggest compatible artists
+- **Genre Mapping**: Maps spectral audio types to real music genres (ambient → Brian Eno, spectral → Aphex Twin)
+- **Search Optimization**: Provides optimized Spotify search queries for each track
+- **Copy-to-Clipboard**: Easy sharing of complete playlist recommendations
+
+**Artist Curation**: All artist recommendations are carefully selected real musicians whose work genuinely matches the spectral audio characteristics. For example:
+- **Ambient tracks** → Brian Eno, Stars of the Lid, Tim Hecker (atmospheric pioneers)
+- **Spectral tracks** → Aphex Twin, Burial, The Haxan Cloak (glitch/dark electronic masters)  
+- **Rhythmic tracks** → Gesaffelstein, Health, Perturbator (industrial/dark techno artists)
+- **Drone tracks** → Sunn O))), Earth, Boris (sustained tone specialists)
+- **Whispers tracks** → Chelsea Wolfe, Lingua Ignota, King Woman (haunting vocal artists)
+
+**Note**: Currently generates intelligent playlist guides rather than direct API integration to maintain single-file architecture. Full Spotify Web API integration is technically possible but would require HTTPS hosting, app registration, and user authentication.
 
 ### ⌨️ Keyboard Shortcuts
 

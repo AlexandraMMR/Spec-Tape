@@ -271,6 +271,27 @@
                 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
+        /* Spotify button styling */
+        #createSpotifyPlaylistBtn {
+            background: linear-gradient(145deg, #1db954, #1ed760) !important;
+            transition: all 0.3s ease;
+        }
+        
+        #createSpotifyPlaylistBtn:hover {
+            background: linear-gradient(145deg, #1ed760, #1db954) !important;
+            transform: translateY(-1px);
+            box-shadow: 
+                0 6px 0 #169c46,
+                0 12px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        #createSpotifyPlaylistBtn:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0 #169c46,
+                0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
         .side-selector.active {
             background: #BF40BF !important;
             color: white !important;
@@ -765,6 +786,9 @@
                     </button>
                     <button id="generateShareLinkBtn" class="btn-3d bg-shock-orange text-black px-3 py-2 rounded font-mono text-xs font-bold hover:bg-orange-400">
                         GENERATE LINK
+                    </button>
+                    <button id="createSpotifyPlaylistBtn" class="btn-3d bg-green-500 text-black px-3 py-2 rounded font-mono text-xs font-bold hover:bg-green-400">
+                        CREATE SPOTIFY PLAYLIST
                     </button>
                     <button id="importDataBtn" class="btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
                         IMPORT DATA
@@ -2813,6 +2837,7 @@ SPEC-TAPE ANALYSIS SYSTEM v1.0`;
             document.getElementById('shareTracklistBtn').addEventListener('click', shareTracklist);
             document.getElementById('shareMixtapeDataBtn').addEventListener('click', shareMixtapeData);
             document.getElementById('generateShareLinkBtn').addEventListener('click', generateShareLink);
+            document.getElementById('createSpotifyPlaylistBtn').addEventListener('click', createSpotifyPlaylist);
             document.getElementById('importDataBtn').addEventListener('click', showImportModal);
             
             // Import modal buttons
@@ -3100,6 +3125,392 @@ Created with SPEC-TAPE Audio Companion v1.0`;
                 logSpectral(`Import error: ${error.message}`);
                 showShareError('INVALID MIXTAPE DATA FORMAT');
             }
+        }
+        
+        // Spotify Integration Options
+        let spotifyAccessToken = null;
+        
+        // Spotify Playlist Generation System
+        async function createSpotifyPlaylist() {
+            if (!appState.mixtape.title && appState.mixtape.sideA.length === 0 && appState.mixtape.sideB.length === 0) {
+                showShareError('NO MIXTAPE TO CONVERT - CREATE TRACKS FIRST');
+                return;
+            }
+            
+            // Check if user wants full Spotify integration or just the guide
+            const userChoice = await showSpotifyOptions();
+            
+            if (userChoice === 'guide') {
+                await generateSpotifyGuide();
+            } else if (userChoice === 'integrate') {
+                await attemptSpotifyIntegration();
+            }
+        }
+        
+        async function generateSpotifyCompatiblePlaylist() {
+            const allTracks = [...appState.mixtape.sideA, ...appState.mixtape.sideB];
+            
+            if (allTracks.length === 0) {
+                throw new Error('No tracks to convert');
+            }
+            
+            // Create playlist header
+            const playlistTitle = appState.mixtape.title || 'Spec-Tape Spectral Mix';
+            let spotifyPlaylist = `🎵 SPOTIFY PLAYLIST: ${playlistTitle.toUpperCase()}
+Generated from Spec-Tape Paranormal Audio Investigation
+Created: ${new Date().toLocaleDateString()}
+
+🎧 RECOMMENDED TRACKS BASED ON SPECTRAL ANALYSIS:
+================================================================
+
+`;
+            
+            // Process each track to find Spotify equivalents
+            for (let i = 0; i < allTracks.length; i++) {
+                const track = allTracks[i];
+                const audioType = determineAudioType(track.name, track);
+                const spotifyRecommendations = getSpotifyRecommendations(track.name, audioType);
+                
+                const sideLabel = i < appState.mixtape.sideA.length ? 'A' : 'B';
+                const trackNumber = i < appState.mixtape.sideA.length ? i + 1 : i - appState.mixtape.sideA.length + 1;
+                
+                spotifyPlaylist += `${String(trackNumber).padStart(2, '0')}. ${track.name} (Side ${sideLabel}) - ${track.duration}
+    🎵 Audio Type: ${audioType.toUpperCase()}
+    🔍 Spotify Search: "${spotifyRecommendations.searchQuery}"
+    💫 Recommended Artists: ${spotifyRecommendations.artists.join(', ')}
+    🎼 Similar Genres: ${spotifyRecommendations.genres.join(', ')}
+    
+`;
+            }
+            
+            spotifyPlaylist += `
+================================================================
+🎯 SPOTIFY SEARCH STRATEGY:
+
+1. Search for each "Spotify Search" query in Spotify
+2. Look for tracks by the recommended artists
+3. Filter by the suggested genres
+4. Prioritize tracks with similar mood and energy
+5. Create playlist in the same order as your Spec-Tape
+
+🎮 BONUS: Search for "dark ambient", "horror synth", or "retro wave" 
+for additional tracks that match the Spec-Tape aesthetic!
+
+================================================================
+Generated by Spec-Tape Audio Companion - Kiroween 2025
+Bridging the gap between paranormal investigation and modern music 👻🎵`;
+            
+            return spotifyPlaylist;
+        }
+        
+        function getSpotifyRecommendations(trackName, audioType) {
+            const recommendations = {
+                searchQuery: '',
+                artists: [],
+                genres: []
+            };
+            
+            // Generate search query based on track name and audio type
+            const trackWords = trackName.toLowerCase().split(' ');
+            const keyWords = trackWords.filter(word => 
+                !['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'].includes(word)
+            );
+            
+            // Create search query based on audio type and track characteristics
+            switch (audioType) {
+                case 'ambient':
+                    recommendations.searchQuery = `ambient ${keyWords.join(' ')} atmospheric`;
+                    recommendations.artists = [
+                        'Brian Eno', 'Stars of the Lid', 'Tim Hecker', 'Grouper',
+                        'Loscil', 'Biosphere', 'Fennesz', 'Eluvium'
+                    ];
+                    recommendations.genres = [
+                        'ambient', 'drone', 'atmospheric', 'post-rock', 'experimental'
+                    ];
+                    break;
+                    
+                case 'spectral':
+                    recommendations.searchQuery = `dark electronic ${keyWords.join(' ')} glitch`;
+                    recommendations.artists = [
+                        'Aphex Twin', 'Autechre', 'Squarepusher', 'Clark',
+                        'Burial', 'The Haxan Cloak', 'Ben Frost', 'Actress'
+                    ];
+                    recommendations.genres = [
+                        'idm', 'glitch', 'dark ambient', 'experimental electronic', 'dubstep'
+                    ];
+                    break;
+                    
+                case 'rhythmic':
+                    recommendations.searchQuery = `dark techno ${keyWords.join(' ')} industrial`;
+                    recommendations.artists = [
+                        'Gesaffelstein', 'Health', 'Author & Punisher', 'Perturbator',
+                        'Carpenter Brut', 'Power Trip', 'Death Grips', 'Clipping'
+                    ];
+                    recommendations.genres = [
+                        'industrial', 'dark techno', 'synthwave', 'hardcore', 'noise'
+                    ];
+                    break;
+                    
+                case 'drone':
+                    recommendations.searchQuery = `drone music ${keyWords.join(' ')} minimalist`;
+                    recommendations.artists = [
+                        'Sunn O)))', 'Earth', 'Boris', 'Nadja',
+                        'Khanate', 'Bong', 'Sleep', 'Monolithe'
+                    ];
+                    recommendations.genres = [
+                        'drone metal', 'doom', 'minimalism', 'noise', 'sludge'
+                    ];
+                    break;
+                    
+                case 'whispers':
+                    recommendations.searchQuery = `dark folk ${keyWords.join(' ')} haunting vocals`;
+                    recommendations.artists = [
+                        'Chelsea Wolfe', 'Emma Ruth Rundle', 'King Woman', 'Lingua Ignota',
+                        'Grouper', 'Julianna Barwick', 'Lana Del Rey', 'FKA twigs'
+                    ];
+                    recommendations.genres = [
+                        'dark folk', 'gothic', 'ethereal wave', 'dream pop', 'witch house'
+                    ];
+                    break;
+                    
+                default:
+                    recommendations.searchQuery = `atmospheric ${keyWords.join(' ')} cinematic`;
+                    recommendations.artists = [
+                        'Godspeed You! Black Emperor', 'Sigur Rós', 'Explosions in the Sky',
+                        'Mono', 'A Silver Mt. Zion', 'Swans'
+                    ];
+                    recommendations.genres = [
+                        'post-rock', 'cinematic', 'atmospheric', 'experimental'
+                    ];
+            }
+            
+            // Add Halloween/spooky specific recommendations if track name suggests it
+            const spookyWords = ['ghost', 'phantom', 'spectral', 'haunted', 'eerie', 'cryptic', 'paranormal'];
+            if (spookyWords.some(word => trackName.toLowerCase().includes(word))) {
+                recommendations.artists.unshift('John Carpenter', 'Goblin', 'Fabio Frizzi', 'Disasterpeace');
+                recommendations.genres.unshift('horror synth', 'dark synthwave');
+                recommendations.searchQuery = `horror soundtrack ${recommendations.searchQuery}`;
+            }
+            
+            // Limit to top recommendations
+            recommendations.artists = recommendations.artists.slice(0, 4);
+            recommendations.genres = recommendations.genres.slice(0, 3);
+            
+            return recommendations;
+        }
+        
+        // Enhanced Spotify Integration Options
+        async function showSpotifyOptions() {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-gray-800 rounded-lg p-6 border-2 border-gray-600 max-w-md w-full mx-4">
+                        <h3 class="text-radioactive-green font-mono text-lg mb-4 text-center neon-glow">
+                            SPOTIFY INTEGRATION OPTIONS
+                        </h3>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="bg-gray-900 rounded p-4 border border-gray-600">
+                                <h4 class="text-neon-purple font-mono text-sm mb-2">📋 PLAYLIST GUIDE (RECOMMENDED)</h4>
+                                <p class="text-gray-300 text-xs font-mono mb-2">
+                                    Generate a detailed guide with search queries and artist recommendations. 
+                                    Copy to clipboard and manually create your Spotify playlist.
+                                </p>
+                                <div class="text-radioactive-green text-xs font-mono">
+                                    ✅ Works immediately • ✅ No login required • ✅ Single-file app
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-900 rounded p-4 border border-gray-600">
+                                <h4 class="text-shock-orange font-mono text-sm mb-2">🎵 FULL INTEGRATION (EXPERIMENTAL)</h4>
+                                <p class="text-gray-300 text-xs font-mono mb-2">
+                                    Attempt to connect to Spotify Web API and create actual playlists. 
+                                    Requires Spotify Premium and authentication.
+                                </p>
+                                <div class="text-shock-orange text-xs font-mono">
+                                    ⚠️ Requires login • ⚠️ Premium account • ⚠️ External dependencies
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button id="chooseGuide" class="btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-xs font-bold hover:bg-green-400 flex-1">
+                                PLAYLIST GUIDE
+                            </button>
+                            <button id="chooseIntegration" class="btn-3d bg-shock-orange text-black px-4 py-2 rounded font-mono text-xs font-bold hover:bg-orange-400 flex-1">
+                                FULL INTEGRATION
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button id="cancelSpotify" class="text-gray-400 font-mono text-xs hover:text-white">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                document.getElementById('chooseGuide').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    resolve('guide');
+                });
+                
+                document.getElementById('chooseIntegration').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    resolve('integrate');
+                });
+                
+                document.getElementById('cancelSpotify').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    resolve('cancel');
+                });
+            });
+        }
+        
+        async function generateSpotifyGuide() {
+            try {
+                showShareSuccess('ANALYZING SPECTRAL FREQUENCIES...');
+                
+                // Generate Spotify-compatible playlist guide
+                const spotifyPlaylist = await generateSpotifyCompatiblePlaylist();
+                
+                // Copy to clipboard
+                await copyToClipboard(spotifyPlaylist);
+                showShareSuccess('SPOTIFY PLAYLIST GUIDE COPIED TO CLIPBOARD');
+                
+                logSpectral('Spotify playlist guide generated successfully');
+                
+            } catch (error) {
+                logSpectral(`Spotify guide error: ${error.message}`);
+                showShareError('FAILED TO GENERATE SPOTIFY GUIDE');
+            }
+        }
+        
+        async function attemptSpotifyIntegration() {
+            try {
+                showShareSuccess('INITIALIZING SPOTIFY WEB API CONNECTION...');
+                
+                // Check if we're in a secure context (required for Spotify Web API)
+                if (!window.isSecureContext) {
+                    throw new Error('Spotify Web API requires HTTPS. Please serve this app over HTTPS for full integration.');
+                }
+                
+                // For a single-file app, we'd need to use Spotify's Implicit Grant Flow
+                // This requires registering the app with Spotify and getting a client ID
+                const clientId = 'YOUR_SPOTIFY_CLIENT_ID'; // Would need to be configured
+                
+                if (!clientId || clientId === 'YOUR_SPOTIFY_CLIENT_ID') {
+                    throw new Error('Spotify integration requires app registration and client ID configuration.');
+                }
+                
+                // Redirect to Spotify authorization (would break single-file architecture)
+                const redirectUri = encodeURIComponent(window.location.href);
+                const scopes = encodeURIComponent('playlist-modify-public playlist-modify-private');
+                const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}`;
+                
+                // Show integration explanation instead of actually redirecting
+                showSpotifyIntegrationExplanation();
+                
+            } catch (error) {
+                logSpectral(`Spotify integration error: ${error.message}`);
+                showSpotifyIntegrationLimitations(error.message);
+            }
+        }
+        
+        function showSpotifyIntegrationExplanation() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-lg p-6 border-2 border-shock-orange max-w-lg w-full mx-4">
+                    <h3 class="text-shock-orange font-mono text-lg mb-4 text-center neon-glow">
+                        SPOTIFY WEB API INTEGRATION
+                    </h3>
+                    
+                    <div class="space-y-4 text-sm font-mono text-gray-300">
+                        <p>🎵 <strong class="text-radioactive-green">Full Spotify integration is technically possible!</strong></p>
+                        
+                        <div class="bg-gray-900 rounded p-3 border border-gray-600">
+                            <h4 class="text-neon-purple mb-2">What it would enable:</h4>
+                            <ul class="text-xs space-y-1">
+                                <li>✅ Automatic playlist creation in your Spotify account</li>
+                                <li>✅ Real song search and matching</li>
+                                <li>✅ Direct playback in the browser (Premium required)</li>
+                                <li>✅ Seamless integration with your music library</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-gray-900 rounded p-3 border border-gray-600">
+                            <h4 class="text-shock-orange mb-2">Why it's not implemented:</h4>
+                            <ul class="text-xs space-y-1">
+                                <li>🔒 Requires Spotify app registration & client ID</li>
+                                <li>🌐 Needs HTTPS hosting (not local files)</li>
+                                <li>🔑 OAuth authentication flow</li>
+                                <li>💰 Spotify Premium account required for playback</li>
+                                <li>📱 Would break our single-file architecture</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-gray-900 rounded p-3 border border-radioactive-green">
+                            <h4 class="text-radioactive-green mb-2">Our solution:</h4>
+                            <p class="text-xs">
+                                The playlist guide provides intelligent recommendations that you can 
+                                easily use to create Spotify playlists manually. It's actually more 
+                                flexible since you can customize the selections!
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center mt-6">
+                        <button id="closeExplanation" class="btn-3d bg-radioactive-green text-black px-6 py-2 rounded font-mono text-sm font-bold hover:bg-green-400">
+                            UNDERSTOOD - USE PLAYLIST GUIDE
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('closeExplanation').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                generateSpotifyGuide(); // Fall back to guide generation
+            });
+        }
+        
+        function showSpotifyIntegrationLimitations(errorMessage) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-lg p-6 border-2 border-red-500 max-w-md w-full mx-4">
+                    <h3 class="text-red-400 font-mono text-lg mb-4 text-center">
+                        SPOTIFY INTEGRATION LIMITATION
+                    </h3>
+                    
+                    <div class="bg-gray-900 rounded p-4 border border-gray-600 mb-4">
+                        <p class="text-gray-300 text-sm font-mono mb-2">
+                            <strong class="text-shock-orange">Technical Limitation:</strong>
+                        </p>
+                        <p class="text-xs font-mono text-gray-400">
+                            ${errorMessage}
+                        </p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="useFallback" class="btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-xs font-bold hover:bg-green-400">
+                            USE PLAYLIST GUIDE INSTEAD
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('useFallback').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                generateSpotifyGuide();
+            });
         }
         
         // Mixtape Editor Functions
