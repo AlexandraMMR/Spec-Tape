@@ -330,11 +330,26 @@
             background: linear-gradient(145deg, #1f2937, #111827);
             border: 1px solid #374151;
             transition: all 0.3s ease;
+            overflow: hidden; /* Prevent content overflow */
         }
         
         .track-container:hover {
             border-color: #4b5563;
             background: linear-gradient(145deg, #374151, #1f2937);
+        }
+        
+        /* Track container flex layout */
+        .track-container .flex {
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Ensure buttons stay within bounds */
+        .track-container .flex > div:last-child {
+            flex-shrink: 0;
+            display: flex;
+            gap: 0.25rem;
         }
         
         /* Track number styling */
@@ -493,29 +508,345 @@
             80% { transform: translate(-1px, -1px) rotate(0.5deg); }
             90% { transform: translate(1px, 0px) rotate(0deg); }
         }
+        
+        /* ===== HALLOWEEN THEMED ENHANCEMENTS ===== */
+        
+        /* Floating ghosts background */
+        @keyframes float-ghost {
+            0%, 100% { 
+                transform: translateY(0) translateX(0);
+                opacity: 0.1;
+            }
+            50% { 
+                transform: translateY(-30px) translateX(10px);
+                opacity: 0.3;
+            }
+        }
+        
+        .ghost-bg {
+            position: fixed;
+            font-size: 3rem;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+            animation: float-ghost 8s ease-in-out infinite;
+        }
+        
+        /* Spooky glow effect */
+        @keyframes spooky-glow {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(255, 140, 0, 0.3),
+                           0 0 20px rgba(191, 64, 191, 0.2);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(255, 140, 0, 0.6),
+                           0 0 40px rgba(191, 64, 191, 0.4),
+                           0 0 60px rgba(64, 191, 64, 0.2);
+            }
+        }
+        
+        .spooky-glow {
+            animation: spooky-glow 3s ease-in-out infinite;
+        }
+        
+        /* Flickering text effect */
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            41%, 43% { opacity: 0.8; }
+            45%, 47% { opacity: 0.9; }
+            49% { opacity: 0.7; }
+            51% { opacity: 1; }
+        }
+        
+        .flicker-text {
+            animation: flicker 4s linear infinite;
+        }
+        
+        /* Creepy shadow pulse */
+        @keyframes shadow-pulse {
+            0%, 100% { 
+                filter: drop-shadow(0 0 5px rgba(255, 140, 0, 0.5));
+            }
+            50% { 
+                filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.9))
+                       drop-shadow(0 0 30px rgba(191, 64, 191, 0.6));
+            }
+        }
+        
+        .shadow-pulse {
+            animation: shadow-pulse 2s ease-in-out infinite;
+        }
+        
+        /* Dripping blood effect */
+        @keyframes drip {
+            0% { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(20px);
+                opacity: 0;
+            }
+        }
+        
+        .blood-drip::after {
+            content: '▼';
+            position: absolute;
+            color: #dc2626;
+            font-size: 0.5rem;
+            animation: drip 2s ease-in infinite;
+        }
+        
+        /* Pumpkin emoji decorations */
+        .pumpkin-decoration {
+            display: inline-block;
+            animation: float-ghost 6s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.8));
+        }
+        
+        /* Bat flying animation */
+        @keyframes fly-bat {
+            0% { 
+                transform: translateX(-100vw) translateY(0) scaleX(1);
+            }
+            45% {
+                transform: translateX(50vw) translateY(-20px) scaleX(1);
+            }
+            50% {
+                transform: translateX(50vw) translateY(-20px) scaleX(-1);
+            }
+            100% { 
+                transform: translateX(120vw) translateY(0) scaleX(-1);
+            }
+        }
+        
+        .flying-bat {
+            position: fixed;
+            font-size: 2rem;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 1;
+            animation: fly-bat 15s linear infinite;
+        }
+        
+        /* Cobweb corners */
+        .cobweb-corner {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .cobweb-corner::before {
+            content: '🕸️';
+            position: absolute;
+            font-size: 4rem;
+            filter: grayscale(100%) brightness(0.5);
+        }
+        
+        .cobweb-top-left {
+            top: 0;
+            left: 0;
+        }
+        
+        .cobweb-top-right {
+            top: 0;
+            right: 0;
+            transform: scaleX(-1);
+        }
+        
+        /* Glowing eyes effect */
+        @keyframes blink-eyes {
+            0%, 90%, 100% { opacity: 1; }
+            93%, 96% { opacity: 0; }
+        }
+        
+        .glowing-eyes {
+            animation: blink-eyes 8s ease-in-out infinite;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        /* Haunted border effect */
+        @keyframes haunted-border {
+            0%, 100% { 
+                border-color: #4b5563;
+                box-shadow: inset 0 0 10px rgba(255, 140, 0, 0.2);
+            }
+            50% { 
+                border-color: #FF8C00;
+                box-shadow: inset 0 0 20px rgba(255, 140, 0, 0.5),
+                           0 0 30px rgba(191, 64, 191, 0.3);
+            }
+        }
+        
+        .haunted-border {
+            animation: haunted-border 4s ease-in-out infinite;
+        }
+        
+        /* Fog effect */
+        @keyframes fog-drift {
+            0% { 
+                transform: translateX(-10%) translateY(0);
+                opacity: 0.1;
+            }
+            50% { 
+                opacity: 0.3;
+            }
+            100% { 
+                transform: translateX(10%) translateY(-5px);
+                opacity: 0.1;
+            }
+        }
+        
+        .fog-layer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(to top, rgba(191, 64, 191, 0.1), transparent);
+            pointer-events: none;
+            z-index: 1;
+            animation: fog-drift 10s ease-in-out infinite;
+        }
+        
+        /* Creepy cursor trail */
+        body {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><text y="20" font-size="20">👻</text></svg>'), auto;
+        }
+        
+        /* Spooky hover effects for buttons */
+        .btn-3d:hover {
+            box-shadow: 
+                0 6px 0 #374151,
+                0 12px 20px rgba(255, 140, 0, 0.4),
+                0 0 30px rgba(191, 64, 191, 0.3);
+        }
+        
+        /* Halloween themed scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #111827;
+            border: 1px solid #FF8C00;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #FF8C00, #BF40BF);
+            border-radius: 6px;
+            border: 2px solid #111827;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #BF40BF, #FF8C00);
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.8);
+        }
+        
+        /* Spooky text selection */
+        ::selection {
+            background: rgba(255, 140, 0, 0.5);
+            color: #000;
+            text-shadow: 0 0 5px rgba(191, 64, 191, 0.8);
+        }
+        
+        /* Enhanced body background with moving shadows */
+        body {
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(191, 64, 191, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 140, 0, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            background-size: 200% 200%;
+            animation: bg-shift 20s ease infinite;
+        }
+        
+        @keyframes bg-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Screen reader only utility class */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        .focus\:not-sr-only:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            padding: inherit;
+            margin: inherit;
+            overflow: visible;
+            clip: auto;
+            white-space: normal;
+        }
     </style>
 </head>
 <body class="bg-spec-dark text-white min-h-screen">
     <!-- Static Overlay for Konami Code Easter Egg -->
     <div id="staticOverlay" class="static-overlay"></div>
     
+    <!-- Skip to main content link for keyboard users -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-neon-purple focus:text-white focus:px-4 focus:py-2 focus:rounded">
+        Skip to main content
+    </a>
+    
+    <!-- Halloween Decorative Elements -->
+    <div class="fog-layer" aria-hidden="true"></div>
+    
+    <!-- Floating Ghosts -->
+    <div class="ghost-bg" style="top: 10%; left: 5%; animation-delay: 0s;" aria-hidden="true">👻</div>
+    <div class="ghost-bg" style="top: 30%; right: 10%; animation-delay: 2s;" aria-hidden="true">👻</div>
+    <div class="ghost-bg" style="bottom: 20%; left: 15%; animation-delay: 4s;" aria-hidden="true">👻</div>
+    <div class="ghost-bg" style="top: 60%; right: 20%; animation-delay: 6s;" aria-hidden="true">👻</div>
+    
+    <!-- Flying Bats -->
+    <div class="flying-bat" style="top: 15%; animation-delay: 0s;" aria-hidden="true">🦇</div>
+    <div class="flying-bat" style="top: 45%; animation-delay: 7s;" aria-hidden="true">🦇</div>
+    <div class="flying-bat" style="top: 75%; animation-delay: 14s;" aria-hidden="true">🦇</div>
+    
+    <!-- Cobwebs in corners -->
+    <div class="cobweb-corner cobweb-top-left" aria-hidden="true"></div>
+    <div class="cobweb-corner cobweb-top-right" aria-hidden="true"></div>
+    
     <!-- Main Application Container -->
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-6xl font-bold text-neon-purple neon-glow mb-2 font-pixel">
-                SPEC-TAPE
-            </h1>
-            <p class="text-radioactive-green text-lg font-mono">
+        <header class="text-center mb-8 relative">
+            <div class="flex justify-center items-center gap-4 mb-2">
+                <span class="pumpkin-decoration text-4xl">🎃</span>
+                <h1 class="text-6xl font-bold text-neon-purple neon-glow font-pixel flicker-text">
+                    SPEC-TAPE
+                </h1>
+                <span class="pumpkin-decoration text-4xl" style="animation-delay: 3s;">🎃</span>
+            </div>
+            <p class="text-radioactive-green text-lg font-mono shadow-pulse">
                 KIROWEEN MIXTAPE ANALYZER v1.0
             </p>
-            <div class="text-shock-orange text-sm font-mono mt-2">
+            <div class="text-shock-orange text-sm font-mono mt-2 flex items-center justify-center gap-2">
+                <span class="glowing-eyes">👁️</span>
                 [PARANORMAL AUDIO INVESTIGATION SYSTEM]
+                <span class="glowing-eyes" style="animation-delay: 4s;">👁️</span>
+            </div>
+            <div class="mt-3 text-xs font-mono text-gray-400 flex items-center justify-center gap-2">
+                <span>🕷️</span>
+                <span class="flicker-text">⚠️ WARNING: SUPERNATURAL ACTIVITY DETECTED ⚠️</span>
+                <span>🕷️</span>
             </div>
         </header>
         
         <!-- Main Boombox Container -->
-        <main class="boombox-container bg-gray-800 rounded-lg p-8 border-4 border-gray-600 crt-effect shadow-2xl">
+        <main id="main-content" class="boombox-container bg-gray-800 rounded-lg p-8 border-4 border-gray-600 crt-effect shadow-2xl spooky-glow haunted-border" role="main" aria-label="Audio player controls"></main>
             
             <!-- Cassette Display Section -->
             <div class="cassette-display bg-gray-900 rounded-lg p-6 mb-6 border-2 border-gray-500">
@@ -589,28 +920,28 @@
                     
                     <!-- Left Control Section -->
                     <div>
-                        <h3 class="text-radioactive-green font-mono text-sm mb-4 neon-glow">
+                        <h2 class="text-radioactive-green font-mono text-sm mb-4 neon-glow">
                             PLAYBACK CONTROLS
-                        </h3>
+                        </h2>
                         
                         <!-- Transport Controls -->
-                        <div class="grid grid-cols-2 gap-2 mb-4">
-                            <button id="rewindBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
+                        <div class="grid grid-cols-2 gap-2 mb-4" role="group" aria-label="Transport controls">
+                            <button id="rewindBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500" aria-label="Rewind"></button>
                                 ⏪ REW
                             </button>
-                            <button id="fastForwardBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
+                            <button id="fastForwardBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500" aria-label="Fast forward">
                                 FF ⏩
                             </button>
-                            <button id="playBtn" class="control-button btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-green-400 col-span-2">
+                            <button id="playBtn" class="control-button btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-green-400 col-span-2" aria-label="Play"></button>
                                 ▶ PLAY
                             </button>
                         </div>
                         
-                        <div class="flex space-x-2 mb-4">
-                            <button id="pauseBtn" class="control-button btn-3d bg-shock-orange text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-orange-400 flex-1">
+                        <div class="flex space-x-2 mb-4" role="group" aria-label="Playback controls">
+                            <button id="pauseBtn" class="control-button btn-3d bg-shock-orange text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-orange-400 flex-1" aria-label="Pause">
                                 ⏸ PAUSE
                             </button>
-                            <button id="stopBtn" class="control-button btn-3d bg-red-500 text-white px-4 py-2 rounded font-mono text-sm font-bold hover:bg-red-400 flex-1">
+                            <button id="stopBtn" class="control-button btn-3d bg-red-500 text-white px-4 py-2 rounded font-mono text-sm font-bold hover:bg-red-400 flex-1" aria-label="Stop"></button>
                                 ⏹ STOP
                             </button>
                         </div>
@@ -618,11 +949,11 @@
                         <!-- Side Selector -->
                         <div class="mb-4">
                             <label class="text-neon-purple font-mono text-xs mb-2 block">TAPE SIDE:</label>
-                            <div class="flex space-x-2">
-                                <button id="sideABtn" class="side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active">
+                            <div class="flex space-x-2" role="group" aria-label="Tape side selection"></div>
+                                <button id="sideABtn" class="side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active">aria-label="Side A" aria-pressed="true">
                                     SIDE A
                                 </button>
-                                <button id="sideBBtn" class="side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500">
+                                <button id="sideBBtn" class="side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500" aria-label="Side B" aria-pressed="false"></button>
                                     SIDE B
                                 </button>
                             </div>
@@ -631,9 +962,9 @@
                     
                     <!-- Right Control Section -->
                     <div>
-                        <h3 class="text-shock-orange font-mono text-sm mb-4 neon-glow">
+                        <h2 class="text-shock-orange font-mono text-sm mb-4 neon-glow">
                             SYSTEM STATUS
-                        </h3>
+                        </h2>
                         
                         <!-- Status Indicators -->
                         <div class="space-y-2 text-xs font-mono">
@@ -657,7 +988,7 @@
                         
                         <!-- Volume Control -->
                         <div class="mt-4">
-                            <label class="text-neon-purple font-mono text-xs mb-2 block">VOLUME:</label>
+                            <label for="volumeSlider" class="text-neon-purple font-mono text-xs mb-2 block">VOLUME:</label>
                             <div class="bg-black rounded p-2">
                                 <input 
                                     type="range" 
@@ -666,10 +997,15 @@
                                     max="100" 
                                     value="70" 
                                     class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer volume-slider"
+                                    aria-label="Volume control"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    aria-valuenow="70"
+                                    aria-valuetext="70 percent"
                                 >
                                 <div class="flex justify-between text-xs text-gray-400 font-mono mt-1">
                                     <span>0</span>
-                                    <span id="volumeDisplay">70%</span>
+                                    <span id="volumeDisplay" aria-live="polite">70%</span>
                                     <span>100</span>
                                 </div>
                             </div>
@@ -690,13 +1026,23 @@
         </main>
         
         <!-- Mixtape Editor Section -->
-        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl">
+        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl spooky-glow haunted-border relative" aria-labelledby="mixtape-editor-heading"></section>
+            <!-- Spooky decorations -->
+            <div class="absolute top-2 left-2 text-xl opacity-40">🎃</div>
+            <div class="absolute top-2 right-2 text-xl opacity-40">🎃</div>
+            
             <header class="text-center mb-6">
-                <h2 class="text-3xl font-bold text-neon-purple neon-glow font-pixel mb-2">
-                    MIXTAPE EDITOR
-                </h2>
-                <p class="text-radioactive-green text-sm font-mono">
+                <div class="flex justify-center items-center gap-3 mb-2">
+                    <span class="text-2xl pumpkin-decoration" aria-hidden="true">🎵</span>
+                    <h2 id="mixtape-editor-heading" class="text-3xl font-bold text-neon-purple neon-glow font-pixel shadow-pulse"></h2>
+                        MIXTAPE EDITOR
+                    </h2>
+                    <span class="text-2xl pumpkin-decoration" style="animation-delay: 2s;">🎵</span>
+                </div>
+                <p class="text-radioactive-green text-sm font-mono flex items-center justify-center gap-2">
+                    <span>🦇</span>
                     [CUSTOMIZE YOUR SPECTRAL COMPILATION]
+                    <span>🦇</span>
                 </p>
             </header>
             
@@ -855,13 +1201,23 @@
         </section>
         
         <!-- EVP Analysis Section -->
-        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl">
+        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl spooky-glow haunted-border relative" aria-labelledby="evp-analysis-heading"></section>
+            <!-- Spooky corner decorations -->
+            <div class="absolute top-2 left-2 text-2xl opacity-50">🕸️</div>
+            <div class="absolute top-2 right-2 text-2xl opacity-50 transform scale-x-[-1]">🕸️</div>
+            
             <header class="text-center mb-6">
-                <h2 class="text-3xl font-bold text-shock-orange neon-glow font-pixel mb-2">
-                    SPECTRAL INTERLUDE
-                </h2>
-                <p class="text-radioactive-green text-sm font-mono">
+                <div class="flex justify-center items-center gap-3 mb-2">
+                    <span class="text-2xl shadow-pulse" aria-hidden="true">💀</span>
+                    <h2 id="evp-analysis-heading" class="text-3xl font-bold text-shock-orange neon-glow font-pixel flicker-text">
+                        SPECTRAL INTERLUDE
+                    </h2>
+                    <span class="text-2xl shadow-pulse" style="animation-delay: 1s;" aria-hidden="true">💀</span>
+                </div>
+                <p class="text-radioactive-green text-sm font-mono flex items-center justify-center gap-2">
+                    <span>👻</span>
                     [EVP ANALYSIS & PARANORMAL LINGUISTICS]
+                    <span>👻</span>
                 </p>
             </header>
             
@@ -921,27 +1277,21 @@
             
             <!-- Sample EVP Suggestions -->
             <div class="bg-gray-900 rounded-lg p-4 border border-gray-600 mb-6">
-                <h4 class="text-radioactive-green font-mono text-sm mb-3 neon-glow">
-                    SAMPLE EVP PHENOMENA:
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="I heard whispers saying 'help me' in reverse">
-                        "Help me" (reversed speech)
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-radioactive-green font-mono text-sm neon-glow">
+                        SAMPLE EVP PHENOMENA:
+                    </h4>
+                    <button id="randomizeEvpSamples" class="btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-xs hover:bg-purple-400">
+                        🎲 RANDOMIZE
                     </button>
-                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="A child's laughter echoing from an empty room">
-                        Child's laughter (empty room)
-                    </button>
-                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="Static interference with the word 'leave' repeated three times">
-                        "Leave" x3 (static interference)
-                    </button>
-                    <button class="evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left" data-sample="Footsteps followed by a door slamming, but no one was there">
-                        Phantom footsteps + door slam
-                    </button>
+                </div>
+                <div id="evpSamplesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <!-- Samples will be populated by JavaScript -->
                 </div>
             </div>
             
             <!-- Analysis Report Display -->
-            <div id="analysisReportSection" class="bg-gray-900 rounded-lg p-6 border-2 border-gray-500 hidden">
+            <div id="analysisReportSection" class="bg-gray-900 rounded-lg p-6 border-2 border-gray-500 hidden" role="region" aria-live="polite" aria-label="EVP Analysis Results"></div>
                 <h3 class="text-radioactive-green font-mono text-lg mb-4 neon-glow text-center">
                     ◄ EVP ANALYSIS REPORT ►
                 </h3>
@@ -1103,11 +1453,8 @@
             document.getElementById('audioStatus').textContent = 'PLAYING';
             document.getElementById('audioStatus').className = 'text-radioactive-green neon-glow';
             
-            // Start actual audio playback
+            // Start actual audio playback (this will also start progress simulation)
             playCurrentTrack();
-            
-            // Start progress simulation
-            startProgressSimulation();
             
             // Start audio level visualization
             startAudioVisualization();
@@ -1244,28 +1591,26 @@
             rightSpool.classList.remove('playing', 'fast-forward', 'rewind');
         }
         
-        // Progress simulation
+        // Progress tracking with accurate timing
         let progressInterval;
         let currentProgress = 0;
+        let trackStartTime = 0;
+        let trackDuration = 0;
         
-        function startProgressSimulation() {
+        function startProgressSimulation(duration) {
             stopProgressSimulation(); // Clear any existing interval
             
+            trackStartTime = Date.now();
+            trackDuration = duration * 1000; // Convert to milliseconds
+            currentProgress = 0;
+            
             progressInterval = setInterval(() => {
-                if (appState.player.isPlaying) {
-                    currentProgress += 0.5; // Increment progress
-                    if (currentProgress > 100) {
-                        currentProgress = 0; // Loop back to start
-                        // Simulate track change
-                        const currentSideData = appState.player.currentSide === 'A' ? appState.mixtape.sideA : appState.mixtape.sideB;
-                        if (currentSideData.length > 0) {
-                            appState.player.currentTrack = (appState.player.currentTrack + 1) % currentSideData.length;
-                            updateDisplay();
-                        }
-                    }
+                if (appState.player.isPlaying && trackDuration > 0) {
+                    const elapsed = Date.now() - trackStartTime;
+                    currentProgress = Math.min((elapsed / trackDuration) * 100, 100);
                     updateProgressBar();
                 }
-            }, 100);
+            }, 50); // Update every 50ms for smooth animation
         }
         
         function stopProgressSimulation() {
@@ -1277,6 +1622,8 @@
         
         function resetProgress() {
             currentProgress = 0;
+            trackStartTime = 0;
+            trackDuration = 0;
             updateProgressBar();
             stopProgressSimulation();
         }
@@ -1420,6 +1767,10 @@
             
             // Update display
             document.getElementById('volumeDisplay').textContent = `${volume}%`;
+            
+            // Update ARIA attributes for accessibility
+            event.target.setAttribute('aria-valuenow', volume);
+            event.target.setAttribute('aria-valuetext', `${volume} percent`);
             
             // Apply volume to master output
             if (audioInitialized) {
@@ -2351,16 +2702,95 @@
             // Clear button
             document.getElementById('clearEvpBtn').addEventListener('click', clearEVPInput);
             
-            // Sample EVP buttons
-            document.querySelectorAll('.evp-sample').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const sample = e.target.getAttribute('data-sample');
-                    document.getElementById('evpTranscript').value = sample;
-                    handleEVPInput({ target: { value: sample } });
-                });
+            // Initialize EVP samples
+            initializeEVPSamples();
+            
+            // Randomize button
+            document.getElementById('randomizeEvpSamples').addEventListener('click', () => {
+                initializeEVPSamples();
+                logSpectral('EVP samples randomized');
             });
             
             logSpectral('EVP Analysis system initialized');
+        }
+        
+        // Comprehensive EVP Sample Database
+        const evpSampleDatabase = [
+            { text: "I heard whispers saying 'help me' in reverse", label: '"Help me" (reversed speech)' },
+            { text: "A child's laughter echoing from an empty room at 3 AM", label: "Child's laughter (empty room)" },
+            { text: "Static interference with the word 'leave' repeated three times", label: '"Leave" x3 (static)' },
+            { text: "Footsteps followed by a door slamming, but no one was there", label: "Phantom footsteps + door" },
+            { text: "A woman's voice singing a lullaby in an abandoned nursery", label: "Lullaby (abandoned nursery)" },
+            { text: "Heavy breathing captured on recorder, no living person present", label: "Disembodied breathing" },
+            { text: "The phrase 'get out' spoken in a deep, distorted voice", label: '"Get out" (distorted voice)' },
+            { text: "Scratching sounds inside the walls, moving from room to room", label: "Wall scratching (moving)" },
+            { text: "A clock chiming thirteen times at midnight", label: "Clock chimes 13x" },
+            { text: "Whispered counting backwards from ten to one, then silence", label: "Countdown whispers" },
+            { text: "The sound of chains dragging across a wooden floor", label: "Dragging chains" },
+            { text: "A music box playing by itself in the attic", label: "Autonomous music box" },
+            { text: "Multiple voices speaking in unison: 'we are here'", label: '"We are here" (chorus)' },
+            { text: "A baby crying, but the recording was made in an empty house", label: "Phantom baby crying" },
+            { text: "The word 'run' whispered urgently three times in succession", label: '"Run" x3 (urgent)' },
+            { text: "Knocking pattern: three knocks, pause, two knocks, repeating", label: "Intelligent knocking (3-2)" },
+            { text: "A voice calling my name, but it sounds like it's underwater", label: "Name called (underwater)" },
+            { text: "Piano keys playing a melody, piano was locked and covered", label: "Locked piano playing" },
+            { text: "The phrase 'behind you' whispered directly into the microphone", label: '"Behind you" (close mic)' },
+            { text: "Children's voices singing ring-around-the-rosie in reverse", label: "Reversed children's song" },
+            { text: "A growling sound that doesn't match any known animal", label: "Unknown growling" },
+            { text: "The sound of glass breaking, but nothing was broken", label: "Phantom glass breaking" },
+            { text: "A voice saying 'I'm still here' in the room where someone died", label: '"Still here" (death room)' },
+            { text: "Footsteps running up stairs, then complete silence", label: "Running footsteps (sudden stop)" },
+            { text: "A woman sobbing, the sound fades in and out", label: "Fading sobs" },
+            { text: "The phrase 'help us' spoken by multiple overlapping voices", label: '"Help us" (multiple voices)' },
+            { text: "A door creaking open slowly, captured on audio but door didn't move", label: "Phantom door creak" },
+            { text: "Static burst followed by the word 'remember' spoken clearly", label: '"Remember" (after static)' },
+            { text: "A heartbeat sound recorded in an empty room", label: "Disembodied heartbeat" },
+            { text: "The sound of someone walking in high heels on the floor above, but there's no floor above", label: "Impossible footsteps above" },
+            { text: "A voice counting: 'one, two, three' then a loud bang", label: "Countdown to bang" },
+            { text: "Whispered conversation in a language I don't recognize", label: "Unknown language whispers" },
+            { text: "The phrase 'it's cold' repeated with increasing desperation", label: '"It\'s cold" (desperate)' },
+            { text: "A bell ringing three times, no bell in the building", label: "Phantom bell (3 rings)" },
+            { text: "The sound of pages turning in a book, library was empty", label: "Autonomous page turning" },
+            { text: "A voice saying 'don't go' right before I left the room", label: '"Don\'t go" (warning)' },
+            { text: "Children laughing and playing, but the playground was demolished years ago", label: "Demolished playground sounds" },
+            { text: "A voice asking 'can you hear me?' followed by static", label: '"Can you hear me?" + static' },
+            { text: "The sound of a rocking chair creaking, no chair present", label: "Phantom rocking chair" },
+            { text: "A scream that starts human but becomes something else", label: "Morphing scream" },
+            { text: "The phrase 'not alone' whispered in my ear during recording", label: '"Not alone" (close whisper)' },
+            { text: "Tapping on glass window, recorded on 10th floor", label: "Window tapping (10th floor)" },
+            { text: "A voice humming a tune I've never heard before", label: "Unknown melody humming" },
+            { text: "The word 'soon' repeated in different voices", label: '"Soon" (multiple voices)' },
+            { text: "Sounds of a party: music, laughter, glasses clinking - house was empty", label: "Phantom party sounds" },
+            { text: "A voice saying 'I see you' when I was alone in the dark", label: '"I see you" (alone in dark)' },
+            { text: "Breathing that gets closer and closer to the microphone", label: "Approaching breath" },
+            { text: "The phrase 'join us' spoken in a child's voice", label: '"Join us" (child voice)' },
+            { text: "A dog barking, but the recording was made years after the dog died", label: "Deceased pet barking" },
+            { text: "The sound of typing on a typewriter, no typewriter in the room", label: "Phantom typewriter" }
+        ];
+        
+        function initializeEVPSamples() {
+            // Shuffle and select 6 random samples
+            const shuffled = [...evpSampleDatabase].sort(() => Math.random() - 0.5);
+            const selectedSamples = shuffled.slice(0, 6);
+            
+            const container = document.getElementById('evpSamplesContainer');
+            container.innerHTML = '';
+            
+            selectedSamples.forEach(sample => {
+                const button = document.createElement('button');
+                button.className = 'evp-sample btn-3d bg-gray-700 text-white px-3 py-2 rounded font-mono text-xs hover:bg-gray-600 text-left';
+                button.setAttribute('data-sample', sample.text);
+                button.textContent = sample.label;
+                
+                button.addEventListener('click', (e) => {
+                    const sampleText = e.target.getAttribute('data-sample');
+                    document.getElementById('evpTranscript').value = sampleText;
+                    handleEVPInput({ target: { value: sampleText } });
+                    logSpectral(`EVP sample loaded: ${sample.label}`);
+                });
+                
+                container.appendChild(button);
+            });
         }
         
         function handleEVPInput(event) {
@@ -3619,25 +4049,25 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
             const canDuplicate = sideData.length < 10;
             
             trackDiv.innerHTML = `
-                <div class="flex items-center space-x-2">
-                    <div class="track-number w-8 h-8 rounded flex items-center justify-center text-xs font-mono">
+                <div class="flex items-center gap-2">
+                    <div class="track-number w-8 h-8 rounded flex items-center justify-center text-xs font-mono flex-shrink-0">
                         ${String(index + 1).padStart(2, '0')}
                     </div>
                     <input 
                         type="text" 
-                        class="track-input flex-1 px-2 py-1 rounded text-sm"
+                        class="track-input flex-1 min-w-0 px-2 py-1 rounded text-sm"
                         value="${track.name}"
                         placeholder="Enter track name..."
                         maxlength="40"
                         data-side="${side}"
                         data-index="${index}"
                     >
-                    <div class="text-xs font-mono text-gray-400 w-12 text-center">
+                    <div class="text-xs font-mono text-gray-400 w-12 text-center flex-shrink-0">
                         ${track.duration}
                     </div>
-                    <div class="flex space-x-1">
+                    <div class="flex gap-1 flex-shrink-0">
                         <button 
-                            class="w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white hover:bg-gray-500 ${!canMoveUp ? 'opacity-30 cursor-not-allowed' : ''}"
+                            class="w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white hover:bg-gray-500 flex items-center justify-center ${!canMoveUp ? 'opacity-30 cursor-not-allowed' : ''}"
                             onclick="moveTrackUp('${side}', ${index})"
                             title="Move up"
                             ${!canMoveUp ? 'disabled' : ''}
@@ -3645,7 +4075,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                             ↑
                         </button>
                         <button 
-                            class="w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white hover:bg-gray-500 ${!canMoveDown ? 'opacity-30 cursor-not-allowed' : ''}"
+                            class="w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white hover:bg-gray-500 flex items-center justify-center ${!canMoveDown ? 'opacity-30 cursor-not-allowed' : ''}"
                             onclick="moveTrackDown('${side}', ${index})"
                             title="Move down"
                             ${!canMoveDown ? 'disabled' : ''}
@@ -3653,7 +4083,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                             ↓
                         </button>
                         <button 
-                            class="w-5 h-5 rounded text-xs font-bold bg-blue-600 text-white hover:bg-blue-500 ${!canDuplicate ? 'opacity-30 cursor-not-allowed' : ''}"
+                            class="w-5 h-5 rounded text-xs font-bold bg-blue-600 text-white hover:bg-blue-500 flex items-center justify-center ${!canDuplicate ? 'opacity-30 cursor-not-allowed' : ''}"
                             onclick="duplicateTrack('${side}', ${index})"
                             title="Duplicate track"
                             ${!canDuplicate ? 'disabled' : ''}
@@ -3661,7 +4091,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                             ⧉
                         </button>
                         <button 
-                            class="remove-track w-5 h-5 rounded text-xs font-bold"
+                            class="remove-track w-5 h-5 rounded text-xs font-bold flex items-center justify-center"
                             onclick="removeTrack('${side}', ${index})"
                             title="Remove track"
                         >
@@ -3858,9 +4288,17 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
         }
         
         // Audio Playback System
+        let activeTimeouts = []; // Track all active setTimeout IDs
+        
         function playCurrentTrack() {
             if (!audioInitialized) {
                 initializeAudio();
+                // After initialization, try playing again
+                setTimeout(() => {
+                    if (audioInitialized) {
+                        playCurrentTrack();
+                    }
+                }, 100);
                 return;
             }
             
@@ -3891,6 +4329,10 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                     startTime: Tone.now()
                 };
                 
+                // Start progress tracking with actual track duration
+                const duration = parseDuration(currentTrack.duration);
+                startProgressSimulation(duration);
+                
                 // Start playing the generated audio
                 playGeneratedAudio(generator, currentTrack);
                 
@@ -3899,18 +4341,37 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
         }
         
         function stopCurrentTrack() {
+            // Clear all pending timeouts
+            activeTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+            activeTimeouts = [];
+            
+            // Stop progress tracking
+            stopProgressSimulation();
+            
             if (currentAudioTrack) {
                 const generator = currentAudioTrack.generator;
                 
                 // Stop all possible audio sources
                 if (generator.synth) {
-                    generator.synth.triggerRelease();
+                    try {
+                        generator.synth.triggerRelease();
+                    } catch (e) {
+                        // Synth might not be in a state to release
+                    }
                 }
                 if (generator.noise) {
-                    generator.noise.stop();
+                    try {
+                        generator.noise.stop();
+                    } catch (e) {
+                        // Noise might already be stopped
+                    }
                 }
                 if (generator.envelope) {
-                    generator.envelope.triggerRelease();
+                    try {
+                        generator.envelope.triggerRelease();
+                    } catch (e) {
+                        // Envelope might not be in a state to release
+                    }
                 }
                 
                 currentAudioTrack = null;
@@ -3980,130 +4441,360 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
         }
         
         function playAmbientTrack(generator, duration) {
-            const notes = ['C2', 'Eb2', 'F2', 'G2', 'Bb2', 'C3'];
+            // Spooky minor scale notes with dissonant intervals
+            const notes = ['C2', 'Eb2', 'F2', 'Ab2', 'Bb2', 'Db3', 'Eb3'];
+            const dissonantNotes = ['C#2', 'F#2', 'A2']; // Tritones and dissonance
             let noteIndex = 0;
             
             const playNote = () => {
                 if (currentAudioTrack) {
-                    const note = notes[noteIndex % notes.length];
-                    generator.synth.triggerAttackRelease(note, "2n");
+                    // Occasionally play dissonant notes for eeriness
+                    const useDissonance = Math.random() < 0.3;
+                    const note = useDissonance 
+                        ? dissonantNotes[Math.floor(Math.random() * dissonantNotes.length)]
+                        : notes[noteIndex % notes.length];
+                    
+                    // Vary note duration for unpredictability
+                    const noteDuration = Math.random() < 0.2 ? "1n" : "2n";
+                    generator.synth.triggerAttackRelease(note, noteDuration);
+                    
+                    // Add creepy filter sweeps
+                    if (generator.filter && Math.random() < 0.4) {
+                        generator.filter.frequency.rampTo(Math.random() * 1000 + 200, Math.random() * 2 + 1);
+                    }
+                    
                     noteIndex++;
                     
-                    // Schedule next note
-                    setTimeout(playNote, Math.random() * 3000 + 2000);
+                    // Variable timing for unsettling rhythm
+                    const delay = Math.random() * 4000 + 1500;
+                    const timeoutId = setTimeout(playNote, delay);
+                    activeTimeouts.push(timeoutId);
                 }
             };
             
             playNote();
             
+            // Add occasional "breath" sounds with reverb swells
+            const addBreathEffect = () => {
+                if (currentAudioTrack && generator.reverb) {
+                    generator.reverb.decay = Math.random() * 8 + 4;
+                    const timeoutId = setTimeout(addBreathEffect, Math.random() * 8000 + 5000);
+                    activeTimeouts.push(timeoutId);
+                }
+            };
+            addBreathEffect();
+            
             // Stop after duration
-            setTimeout(() => {
+            const durationTimeoutId = setTimeout(() => {
                 if (currentAudioTrack && currentAudioTrack.generator === generator) {
                     stopCurrentTrack();
                     advanceToNextTrack();
                 }
             }, duration * 1000);
+            activeTimeouts.push(durationTimeoutId);
         }
         
         function playSpectralTrack(generator, duration) {
-            const notes = ['C4', 'D#4', 'F#4', 'A4', 'C5'];
+            // High-pitched ghostly frequencies
+            const ghostNotes = ['C5', 'D#5', 'F#5', 'A5', 'C6', 'E6'];
+            const lowRumbles = ['C2', 'F#2', 'C3']; // Deep ominous tones
             let playing = true;
             
             const playGlitch = () => {
                 if (currentAudioTrack && playing) {
-                    const note = notes[Math.floor(Math.random() * notes.length)];
-                    const glitchDuration = Math.random() * 0.3 + 0.1;
+                    // Mix high ghostly sounds with occasional deep rumbles
+                    const useLowRumble = Math.random() < 0.2;
+                    const note = useLowRumble
+                        ? lowRumbles[Math.floor(Math.random() * lowRumbles.length)]
+                        : ghostNotes[Math.floor(Math.random() * ghostNotes.length)];
                     
+                    const glitchDuration = Math.random() * 0.4 + 0.05;
                     generator.synth.triggerAttackRelease(note, glitchDuration);
                     
-                    // Random delay between glitches
-                    setTimeout(playGlitch, Math.random() * 1500 + 500);
+                    // Add bit crushing for digital ghost effect
+                    if (generator.bitCrusher && Math.random() < 0.5) {
+                        generator.bitCrusher.bits = Math.floor(Math.random() * 6) + 2;
+                    }
+                    
+                    // Sweep the bandpass filter for "voice-like" quality
+                    if (generator.filter) {
+                        const targetFreq = Math.random() * 3000 + 800;
+                        generator.filter.frequency.rampTo(targetFreq, 0.1);
+                    }
+                    
+                    // Variable delay for unpredictable ghostly presence
+                    const delay = Math.random() * 2000 + 200;
+                    const timeoutId = setTimeout(playGlitch, delay);
+                    activeTimeouts.push(timeoutId);
                 }
+            };
+            
+            // Add occasional "EVP burst" - rapid sequence of notes
+            const evpBurst = () => {
+                if (currentAudioTrack && playing && Math.random() < 0.3) {
+                    for (let i = 0; i < 5; i++) {
+                        const burstTimeoutId = setTimeout(() => {
+                            if (currentAudioTrack) {
+                                const note = ghostNotes[Math.floor(Math.random() * ghostNotes.length)];
+                                generator.synth.triggerAttackRelease(note, "32n");
+                            }
+                        }, i * 50);
+                        activeTimeouts.push(burstTimeoutId);
+                    }
+                }
+                const timeoutId = setTimeout(evpBurst, Math.random() * 6000 + 3000);
+                activeTimeouts.push(timeoutId);
             };
             
             playGlitch();
+            evpBurst();
             
-            setTimeout(() => {
+            const durationTimeoutId = setTimeout(() => {
                 playing = false;
                 if (currentAudioTrack && currentAudioTrack.generator === generator) {
                     stopCurrentTrack();
                     advanceToNextTrack();
                 }
             }, duration * 1000);
+            activeTimeouts.push(durationTimeoutId);
         }
         
         function playRhythmicTrack(generator, duration) {
-            const pattern = [1, 0, 1, 0, 1, 1, 0, 1];
+            // Irregular, unsettling rhythm patterns
+            const patterns = [
+                [1, 0, 1, 0, 1, 1, 0, 1],      // Basic
+                [1, 1, 0, 1, 0, 0, 1, 0],      // Syncopated
+                [1, 0, 0, 1, 1, 0, 1, 0, 0, 1], // Irregular
+                [1, 1, 1, 0, 1, 0, 0, 0]       // Clustered
+            ];
+            
+            let currentPattern = patterns[0];
             let patternIndex = 0;
             let playing = true;
+            let tempo = 250; // Base tempo
             
             const playBeat = () => {
                 if (currentAudioTrack && playing) {
-                    if (pattern[patternIndex % pattern.length]) {
-                        generator.synth.triggerAttackRelease('C1', '8n');
+                    if (currentPattern[patternIndex % currentPattern.length]) {
+                        // Vary pitch slightly for organic feel
+                        const pitchVariation = Math.random() < 0.3 ? 'C#1' : 'C1';
+                        const velocity = Math.random() * 0.3 + 0.7; // Vary intensity
+                        
+                        generator.synth.triggerAttackRelease(pitchVariation, '8n', Tone.now(), velocity);
+                        
+                        // Occasional "double hit" for tension
+                        if (Math.random() < 0.15) {
+                            const doubleHitId = setTimeout(() => {
+                                if (currentAudioTrack) {
+                                    generator.synth.triggerAttackRelease('C1', '32n', Tone.now(), 0.5);
+                                }
+                            }, 50);
+                            activeTimeouts.push(doubleHitId);
+                        }
                     }
                     patternIndex++;
                     
-                    setTimeout(playBeat, 250); // 240 BPM
+                    // Occasionally switch patterns for unpredictability
+                    if (patternIndex % 16 === 0 && Math.random() < 0.4) {
+                        currentPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                    }
+                    
+                    // Vary tempo slightly for unease
+                    if (Math.random() < 0.1) {
+                        tempo = Math.random() * 100 + 200; // 200-300ms
+                    }
+                    
+                    const timeoutId = setTimeout(playBeat, tempo);
+                    activeTimeouts.push(timeoutId);
                 }
             };
             
-            playBeat();
+            // Add occasional "heartbeat" effect - two quick beats
+            const addHeartbeat = () => {
+                if (currentAudioTrack && playing && Math.random() < 0.3) {
+                    generator.synth.triggerAttackRelease('C1', '16n', Tone.now(), 0.8);
+                    const secondBeatId = setTimeout(() => {
+                        if (currentAudioTrack) {
+                            generator.synth.triggerAttackRelease('C1', '16n', Tone.now(), 0.6);
+                        }
+                    }, 150);
+                    activeTimeouts.push(secondBeatId);
+                }
+                
+                const timeoutId = setTimeout(addHeartbeat, Math.random() * 8000 + 5000);
+                activeTimeouts.push(timeoutId);
+            };
             
-            setTimeout(() => {
+            playBeat();
+            addHeartbeat();
+            
+            const durationTimeoutId = setTimeout(() => {
                 playing = false;
                 if (currentAudioTrack && currentAudioTrack.generator === generator) {
                     stopCurrentTrack();
                     advanceToNextTrack();
                 }
             }, duration * 1000);
+            activeTimeouts.push(durationTimeoutId);
         }
         
         function playDroneTrack(generator, duration) {
             const baseNote = 'C1';
             generator.synth.triggerAttack(baseNote);
             
-            // Add subtle frequency modulation
+            // Add ominous frequency modulation with irregular patterns
             let modulation = 0;
+            let modulationSpeed = 0.05;
+            
             const modulateFreq = () => {
                 if (currentAudioTrack) {
-                    modulation += 0.1;
-                    const freq = Tone.Frequency(baseNote).toFrequency() + Math.sin(modulation) * 5;
+                    modulation += modulationSpeed;
+                    
+                    // Create unsettling wobbles and warbles
+                    const wobble = Math.sin(modulation) * 8;
+                    const warble = Math.sin(modulation * 3.7) * 3; // Irregular harmonic
+                    const freq = Tone.Frequency(baseNote).toFrequency() + wobble + warble;
+                    
                     generator.synth.frequency.setValueAtTime(freq, Tone.now());
                     
-                    setTimeout(modulateFreq, 100);
+                    // Occasionally change modulation speed for unpredictability
+                    if (Math.random() < 0.02) {
+                        modulationSpeed = Math.random() * 0.1 + 0.03;
+                    }
+                    
+                    const timeoutId = setTimeout(modulateFreq, 80);
+                    activeTimeouts.push(timeoutId);
+                }
+            };
+            
+            // Add creepy filter sweeps
+            const filterSweep = () => {
+                if (currentAudioTrack && generator.filter) {
+                    const targetFreq = Math.random() * 300 + 100;
+                    generator.filter.frequency.rampTo(targetFreq, Math.random() * 4 + 2);
+                    
+                    const timeoutId = setTimeout(filterSweep, Math.random() * 6000 + 3000);
+                    activeTimeouts.push(timeoutId);
+                }
+            };
+            
+            // Add occasional "presence" - brief volume swells
+            const addPresence = () => {
+                if (currentAudioTrack && generator.synth) {
+                    const currentVolume = generator.synth.volume.value;
+                    generator.synth.volume.rampTo(currentVolume + 3, 0.5);
+                    
+                    const returnTimeoutId = setTimeout(() => {
+                        if (generator.synth) {
+                            generator.synth.volume.rampTo(currentVolume, 1.5);
+                        }
+                    }, 800);
+                    activeTimeouts.push(returnTimeoutId);
+                    
+                    const timeoutId = setTimeout(addPresence, Math.random() * 12000 + 8000);
+                    activeTimeouts.push(timeoutId);
                 }
             };
             
             modulateFreq();
+            filterSweep();
+            addPresence();
             
-            setTimeout(() => {
+            const durationTimeoutId = setTimeout(() => {
                 if (currentAudioTrack && currentAudioTrack.generator === generator) {
                     generator.synth.triggerRelease();
-                    setTimeout(() => {
+                    const fadeTimeoutId = setTimeout(() => {
                         stopCurrentTrack();
                         advanceToNextTrack();
                     }, 2000); // Fade out time
+                    activeTimeouts.push(fadeTimeoutId);
                 }
             }, duration * 1000);
+            activeTimeouts.push(durationTimeoutId);
         }
         
         function playWhispersTrack(generator, duration) {
             generator.noise.start();
             
             let playing = true;
+            
+            // Create whisper-like patterns with varying intensity
             const triggerWhisper = () => {
                 if (currentAudioTrack && playing) {
-                    generator.envelope.triggerAttackRelease('2n');
+                    // Vary whisper length for realism
+                    const whisperDuration = Math.random() < 0.3 ? "4n" : "2n";
+                    generator.envelope.triggerAttackRelease(whisperDuration);
                     
-                    // Random intervals for whispers
-                    setTimeout(triggerWhisper, Math.random() * 4000 + 1000);
+                    // Modulate filter to simulate speech formants
+                    if (generator.filter) {
+                        const formantFreq = Math.random() * 2000 + 1000;
+                        generator.filter.frequency.rampTo(formantFreq, Math.random() * 0.5 + 0.2);
+                        generator.filter.Q.value = Math.random() * 8 + 2; // Narrow band for voice-like quality
+                    }
+                    
+                    // Variable timing - sometimes whispers come in clusters
+                    const isCluster = Math.random() < 0.3;
+                    const delay = isCluster 
+                        ? Math.random() * 800 + 200  // Quick succession
+                        : Math.random() * 5000 + 2000; // Longer pauses
+                    
+                    const timeoutId = setTimeout(triggerWhisper, delay);
+                    activeTimeouts.push(timeoutId);
+                }
+            };
+            
+            // Add "breath" sounds - longer, softer whispers
+            const triggerBreath = () => {
+                if (currentAudioTrack && playing) {
+                    generator.envelope.attack = 1.5;
+                    generator.envelope.release = 3;
+                    generator.envelope.triggerAttackRelease("1n");
+                    
+                    // Reset envelope for normal whispers
+                    const resetTimeoutId = setTimeout(() => {
+                        if (generator.envelope) {
+                            generator.envelope.attack = 0.5;
+                            generator.envelope.release = 2;
+                        }
+                    }, 2000);
+                    activeTimeouts.push(resetTimeoutId);
+                    
+                    const timeoutId = setTimeout(triggerBreath, Math.random() * 10000 + 8000);
+                    activeTimeouts.push(timeoutId);
+                }
+            };
+            
+            // Add occasional "voice-like" sweeps
+            const voiceSweep = () => {
+                if (currentAudioTrack && playing && generator.filter) {
+                    // Simulate vowel formants
+                    const vowelFormants = [
+                        [800, 1200],  // "ah"
+                        [400, 2000],  // "ee"
+                        [500, 1000],  // "oo"
+                        [600, 1800]   // "eh"
+                    ];
+                    
+                    const formant = vowelFormants[Math.floor(Math.random() * vowelFormants.length)];
+                    generator.filter.frequency.rampTo(formant[0], 0.3);
+                    
+                    const sweepTimeoutId = setTimeout(() => {
+                        if (generator.filter) {
+                            generator.filter.frequency.rampTo(formant[1], 0.4);
+                        }
+                    }, 300);
+                    activeTimeouts.push(sweepTimeoutId);
+                    
+                    const timeoutId = setTimeout(voiceSweep, Math.random() * 7000 + 4000);
+                    activeTimeouts.push(timeoutId);
                 }
             };
             
             triggerWhisper();
+            triggerBreath();
+            voiceSweep();
             
-            setTimeout(() => {
+            const durationTimeoutId = setTimeout(() => {
                 playing = false;
                 if (currentAudioTrack && currentAudioTrack.generator === generator) {
                     generator.noise.stop();
@@ -4111,6 +4802,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                     advanceToNextTrack();
                 }
             }, duration * 1000);
+            activeTimeouts.push(durationTimeoutId);
         }
         
         function advanceToNextTrack() {
@@ -4136,7 +4828,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
             updateDisplay();
             
             // Start next track after crossfade
-            setTimeout(() => {
+            const crossfadeTimeoutId = setTimeout(() => {
                 if (appState.player.isPlaying) {
                     stopCurrentTrack(); // Clean stop of previous
                     playCurrentTrack(); // Start new track
@@ -4149,6 +4841,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                     }
                 }
             }, 500);
+            activeTimeouts.push(crossfadeTimeoutId);
         }
         
         // Audio Visualization System
@@ -4470,13 +5163,16 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
         }
         
         function createSpectralGenerator() {
-            const delay = new Tone.PingPongDelay("8n", 0.3).toDestination();
-            const bitCrusher = new Tone.BitCrusher(4).connect(delay);
-            const distortion = new Tone.Distortion(0.4).connect(bitCrusher);
-            const filter = new Tone.Filter(2000, "bandpass").connect(distortion);
+            const delay = new Tone.PingPongDelay("8n", 0.4).toDestination();
+            const reverb = new Tone.Reverb(8).connect(delay);
+            const bitCrusher = new Tone.BitCrusher(3).connect(reverb); // Lower bits for more digital ghost effect
+            const distortion = new Tone.Distortion(0.6).connect(bitCrusher); // More distortion for eeriness
+            const filter = new Tone.Filter(1500, "bandpass").connect(distortion);
+            filter.Q.value = 8; // Narrow band for voice-like quality
+            
             const synth = new Tone.MonoSynth({
                 oscillator: { type: "sawtooth" },
-                envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 1 }
+                envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.8 }
             }).connect(filter);
             
             return {
@@ -4485,6 +5181,7 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
                 delay: delay,
                 bitCrusher: bitCrusher,
                 filter: filter,
+                reverb: reverb,
                 type: 'spectral'
             };
         }
@@ -4508,11 +5205,19 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
         }
         
         function createDroneGenerator() {
-            const reverb = new Tone.Reverb(12).toDestination();
-            const filter = new Tone.Filter(200, "lowpass").connect(reverb);
+            const reverb = new Tone.Reverb(15).toDestination(); // Very long reverb for ominous atmosphere
+            reverb.wet.value = 0.8;
+            
+            const filter = new Tone.Filter(150, "lowpass").connect(reverb);
+            filter.rolloff = -24; // Steeper rolloff for darker tone
+            
+            // Use two oscillators for richer, more unsettling sound
             const synth = new Tone.Synth({
-                oscillator: { type: "triangle" },
-                envelope: { attack: 4, decay: 0, sustain: 1, release: 8 }
+                oscillator: { 
+                    type: "triangle",
+                    partials: [1, 0.5, 0.3, 0.2] // Add harmonics for complexity
+                },
+                envelope: { attack: 5, decay: 0, sustain: 1, release: 10 }
             }).connect(filter);
             
             return {
@@ -4524,14 +5229,20 @@ Bridging the gap between paranormal investigation and modern music 👻🎵`;
         }
         
         function createWhispersGenerator() {
-            const reverb = new Tone.Reverb(6).toDestination();
-            const filter = new Tone.Filter(2000, "bandpass").connect(reverb);
+            const reverb = new Tone.Reverb(10).toDestination(); // Longer reverb for ghostly presence
+            reverb.wet.value = 0.7; // More wet signal for ethereal quality
+            
+            const filter = new Tone.Filter(1500, "bandpass").connect(reverb);
+            filter.Q.value = 6; // Resonant filter for voice-like formants
+            
             const noise = new Tone.Noise("pink").connect(filter);
+            noise.volume.value = -10; // Quieter for subtlety
+            
             const envelope = new Tone.AmplitudeEnvelope({
-                attack: 0.5,
-                decay: 1,
-                sustain: 0.1,
-                release: 2
+                attack: 0.8,
+                decay: 1.5,
+                sustain: 0.2,
+                release: 3
             }).connect(filter);
             noise.connect(envelope);
             
