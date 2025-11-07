@@ -766,58 +766,29 @@
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
-        
-        /* Screen reader only utility class */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-        }
-        
-        .focus\:not-sr-only:focus {
-            position: static;
-            width: auto;
-            height: auto;
-            padding: inherit;
-            margin: inherit;
-            overflow: visible;
-            clip: auto;
-            white-space: normal;
-        }
     </style>
 </head>
 <body class="bg-spec-dark text-white min-h-screen">
     <!-- Static Overlay for Konami Code Easter Egg -->
     <div id="staticOverlay" class="static-overlay"></div>
     
-    <!-- Skip to main content link for keyboard users -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-neon-purple focus:text-white focus:px-4 focus:py-2 focus:rounded">
-        Skip to main content
-    </a>
-    
     <!-- Halloween Decorative Elements -->
-    <div class="fog-layer" aria-hidden="true"></div>
+    <div class="fog-layer"></div>
     
     <!-- Floating Ghosts -->
-    <div class="ghost-bg" style="top: 10%; left: 5%; animation-delay: 0s;" aria-hidden="true">👻</div>
-    <div class="ghost-bg" style="top: 30%; right: 10%; animation-delay: 2s;" aria-hidden="true">👻</div>
-    <div class="ghost-bg" style="bottom: 20%; left: 15%; animation-delay: 4s;" aria-hidden="true">👻</div>
-    <div class="ghost-bg" style="top: 60%; right: 20%; animation-delay: 6s;" aria-hidden="true">👻</div>
+    <div class="ghost-bg" style="top: 10%; left: 5%; animation-delay: 0s;">👻</div>
+    <div class="ghost-bg" style="top: 30%; right: 10%; animation-delay: 2s;">👻</div>
+    <div class="ghost-bg" style="bottom: 20%; left: 15%; animation-delay: 4s;">👻</div>
+    <div class="ghost-bg" style="top: 60%; right: 20%; animation-delay: 6s;">👻</div>
     
     <!-- Flying Bats -->
-    <div class="flying-bat" style="top: 15%; animation-delay: 0s;" aria-hidden="true">🦇</div>
-    <div class="flying-bat" style="top: 45%; animation-delay: 7s;" aria-hidden="true">🦇</div>
-    <div class="flying-bat" style="top: 75%; animation-delay: 14s;" aria-hidden="true">🦇</div>
+    <div class="flying-bat" style="top: 15%; animation-delay: 0s;">🦇</div>
+    <div class="flying-bat" style="top: 45%; animation-delay: 7s;">🦇</div>
+    <div class="flying-bat" style="top: 75%; animation-delay: 14s;">🦇</div>
     
     <!-- Cobwebs in corners -->
-    <div class="cobweb-corner cobweb-top-left" aria-hidden="true"></div>
-    <div class="cobweb-corner cobweb-top-right" aria-hidden="true"></div>
+    <div class="cobweb-corner cobweb-top-left"></div>
+    <div class="cobweb-corner cobweb-top-right"></div>
     
     <!-- Main Application Container -->
     <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -846,7 +817,7 @@
         </header>
         
         <!-- Main Boombox Container -->
-        <main id="main-content" class="boombox-container bg-gray-800 rounded-lg p-8 border-4 border-gray-600 crt-effect shadow-2xl spooky-glow haunted-border" role="main" aria-label="Audio player controls"></main>
+        <main class="boombox-container bg-gray-800 rounded-lg p-8 border-4 border-gray-600 crt-effect shadow-2xl spooky-glow haunted-border"></main>
             
             <!-- Cassette Display Section -->
             <div class="cassette-display bg-gray-900 rounded-lg p-6 mb-6 border-2 border-gray-500">
@@ -925,23 +896,23 @@
                         </h2>
                         
                         <!-- Transport Controls -->
-                        <div class="grid grid-cols-2 gap-2 mb-4" role="group" aria-label="Transport controls">
-                            <button id="rewindBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500" aria-label="Rewind"></button>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button id="rewindBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
                                 ⏪ REW
                             </button>
-                            <button id="fastForwardBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500" aria-label="Fast forward">
+                            <button id="fastForwardBtn" class="control-button btn-3d bg-gray-600 text-white px-3 py-2 rounded font-mono text-xs font-bold hover:bg-gray-500">
                                 FF ⏩
                             </button>
-                            <button id="playBtn" class="control-button btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-green-400 col-span-2" aria-label="Play"></button>
+                            <button id="playBtn" class="control-button btn-3d bg-radioactive-green text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-green-400 col-span-2">
                                 ▶ PLAY
                             </button>
                         </div>
                         
-                        <div class="flex space-x-2 mb-4" role="group" aria-label="Playback controls">
-                            <button id="pauseBtn" class="control-button btn-3d bg-shock-orange text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-orange-400 flex-1" aria-label="Pause">
+                        <div class="flex space-x-2 mb-4">
+                            <button id="pauseBtn" class="control-button btn-3d bg-shock-orange text-black px-4 py-2 rounded font-mono text-sm font-bold hover:bg-orange-400 flex-1">
                                 ⏸ PAUSE
                             </button>
-                            <button id="stopBtn" class="control-button btn-3d bg-red-500 text-white px-4 py-2 rounded font-mono text-sm font-bold hover:bg-red-400 flex-1" aria-label="Stop"></button>
+                            <button id="stopBtn" class="control-button btn-3d bg-red-500 text-white px-4 py-2 rounded font-mono text-sm font-bold hover:bg-red-400 flex-1">
                                 ⏹ STOP
                             </button>
                         </div>
@@ -949,11 +920,11 @@
                         <!-- Side Selector -->
                         <div class="mb-4">
                             <label class="text-neon-purple font-mono text-xs mb-2 block">TAPE SIDE:</label>
-                            <div class="flex space-x-2" role="group" aria-label="Tape side selection"></div>
-                                <button id="sideABtn" class="side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active">aria-label="Side A" aria-pressed="true">
+                            <div class="flex space-x-2">
+                                <button id="sideABtn" class="side-selector btn-3d bg-neon-purple text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-purple-400 active">
                                     SIDE A
                                 </button>
-                                <button id="sideBBtn" class="side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500" aria-label="Side B" aria-pressed="false"></button>
+                                <button id="sideBBtn" class="side-selector btn-3d bg-gray-600 text-white px-3 py-1 rounded font-mono text-sm font-bold hover:bg-gray-500">
                                     SIDE B
                                 </button>
                             </div>
@@ -1026,15 +997,15 @@
         </main>
         
         <!-- Mixtape Editor Section -->
-        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl spooky-glow haunted-border relative" aria-labelledby="mixtape-editor-heading"></section>
+        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl spooky-glow haunted-border relative">
             <!-- Spooky decorations -->
             <div class="absolute top-2 left-2 text-xl opacity-40">🎃</div>
             <div class="absolute top-2 right-2 text-xl opacity-40">🎃</div>
             
             <header class="text-center mb-6">
                 <div class="flex justify-center items-center gap-3 mb-2">
-                    <span class="text-2xl pumpkin-decoration" aria-hidden="true">🎵</span>
-                    <h2 id="mixtape-editor-heading" class="text-3xl font-bold text-neon-purple neon-glow font-pixel shadow-pulse"></h2>
+                    <span class="text-2xl pumpkin-decoration">🎵</span>
+                    <h2 class="text-3xl font-bold text-neon-purple neon-glow font-pixel shadow-pulse">
                         MIXTAPE EDITOR
                     </h2>
                     <span class="text-2xl pumpkin-decoration" style="animation-delay: 2s;">🎵</span>
@@ -1201,18 +1172,18 @@
         </section>
         
         <!-- EVP Analysis Section -->
-        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl spooky-glow haunted-border relative" aria-labelledby="evp-analysis-heading"></section>
+        <section class="bg-gray-800 rounded-lg p-6 border-4 border-gray-600 mt-6 crt-effect shadow-2xl spooky-glow haunted-border relative">
             <!-- Spooky corner decorations -->
             <div class="absolute top-2 left-2 text-2xl opacity-50">🕸️</div>
             <div class="absolute top-2 right-2 text-2xl opacity-50 transform scale-x-[-1]">🕸️</div>
             
             <header class="text-center mb-6">
                 <div class="flex justify-center items-center gap-3 mb-2">
-                    <span class="text-2xl shadow-pulse" aria-hidden="true">💀</span>
-                    <h2 id="evp-analysis-heading" class="text-3xl font-bold text-shock-orange neon-glow font-pixel flicker-text">
+                    <span class="text-2xl shadow-pulse">💀</span>
+                    <h2 class="text-3xl font-bold text-shock-orange neon-glow font-pixel flicker-text">
                         SPECTRAL INTERLUDE
                     </h2>
-                    <span class="text-2xl shadow-pulse" style="animation-delay: 1s;" aria-hidden="true">💀</span>
+                    <span class="text-2xl shadow-pulse" style="animation-delay: 1s;">💀</span>
                 </div>
                 <p class="text-radioactive-green text-sm font-mono flex items-center justify-center gap-2">
                     <span>👻</span>
@@ -1291,7 +1262,7 @@
             </div>
             
             <!-- Analysis Report Display -->
-            <div id="analysisReportSection" class="bg-gray-900 rounded-lg p-6 border-2 border-gray-500 hidden" role="region" aria-live="polite" aria-label="EVP Analysis Results"></div>
+            <div id="analysisReportSection" class="bg-gray-900 rounded-lg p-6 border-2 border-gray-500 hidden">
                 <h3 class="text-radioactive-green font-mono text-lg mb-4 neon-glow text-center">
                     ◄ EVP ANALYSIS REPORT ►
                 </h3>
