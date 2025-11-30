@@ -6,5 +6,7 @@
         {
             "path": "../reInventathome"
         }
-    ]
+    ],
+    "settings": {
+    }
 }
